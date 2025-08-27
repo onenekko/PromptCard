@@ -1,0 +1,1841 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>PromptCard – ワンクリックでコピーできるプロンプト集</title>
+    <meta name="description" content="用途別にまとめたプロンプトをワンクリックでコピー。検索・カテゴリ別フィルタ・お気に入り・ローカル保存・JSONインポート/エクスポート対応。" />
+    <style>
+      :root {
+        /* 背景色 */
+        --bg-primary: #0f1023;
+        --bg-secondary: #17183a;
+        --bg-tertiary: #1c1f49;
+
+        /* テキスト */
+        --text-primary: #f3f4ff;
+        --text-muted: #cfd6ff;
+
+        /* アクセントカラー */
+        --primary: #ff9bd3;
+        --secondary: #cdb4ff;
+        --success: #4ad4a0;
+        --warning: #ffd86b;
+        --error: #ff6b81;
+
+        /* UI要素 */
+        --border: #303875;
+        --border-light: rgba(255,255,255,0.1);
+        --shadow: 0 14px 30px rgba(0,0,0,0.28);
+        --shadow-hover: 0 20px 40px rgba(0,0,0,0.35);
+
+        /* 互換性維持 */
+        --bg: var(--bg-primary);
+        --panel: var(--bg-secondary);
+        --panel-2: var(--bg-tertiary);
+        --text: var(--text-primary);
+        --muted: var(--text-muted);
+        --accent: var(--primary);
+        --accent-2: var(--secondary);
+        --danger: var(--error);
+        --ok: var(--success);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: 'M PLUS Rounded 1c', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1000px 500px at 85% -10%, #2a2d64 0%, #15163a 55%, #0f1023 100%);
+        color: var(--text);
+        letter-spacing: 0.2px;
+      }
+
+      a { color: var(--accent-2); text-decoration: none; }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+
+      .title {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .title h1 { font-size: 22px; margin: 0; font-weight: 700; }
+      .title h1::after { content: ' ✨'; font-size: 90%; opacity: .9; }
+      .title .badge { font-size: 12px; color: #ffe7f5; background: linear-gradient(180deg, rgba(255,155,211,.22), rgba(205,180,255,.18)); border: 1px solid rgba(255,155,211,.35); padding: 4px 10px; border-radius: 999px; backdrop-filter: blur(6px); }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .control, select, textarea, input[type="text"] { background: linear-gradient(180deg, #1b1e4a, #14183e); border: 1px solid var(--border); color: var(--text); border-radius: 14px; padding: 10px 12px; font-size: 14px; outline: none; transition: 0.15s ease, box-shadow .15s ease; }
+      .control::placeholder { color: #d6dbff; opacity: .6; }
+      .control:focus, select:focus, textarea:focus, input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,155,211,.18), 0 8px 20px rgba(255,155,211,.12); }
+      .btn {
+        cursor: pointer;
+        background: linear-gradient(180deg, var(--primary), var(--secondary));
+        border: 1px solid rgba(255,155,211,.55);
+        color: white;
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-weight: 600;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* より滑らかなトランジション */
+        position: relative;
+        overflow: hidden;
+        margin: 0 2px; /* ボタン間に安定した判定領域を作る */
+      }
+      .btn:hover {
+        background: linear-gradient(180deg, rgba(255,155,211,1.1), rgba(205,180,255,1));
+        box-shadow: 0 8px 20px rgba(255,155,211,.3);
+        filter: brightness(1.05) drop-shadow(0 1px 3px rgba(255,155,211,.2));
+        transform: translateY(0); /* 位置は動かさない */
+      }
+      .btn:active {
+        background: linear-gradient(180deg, rgba(255,155,211,0.8), rgba(205,180,255,0.7)); /* クリック時は少し暗く */
+        box-shadow: 0 2px 8px rgba(255,155,211,.1);
+      }
+      .btn.secondary {
+        background: linear-gradient(180deg, var(--success), var(--secondary));
+        border-color: rgba(74,212,160,.45);
+        color: #14203a;
+      }
+      .btn.copied {
+        background: linear-gradient(180deg, var(--success), #23794b);
+        border-color: var(--success);
+        color: #eafff1;
+      }
+      .btn.failed {
+        background: linear-gradient(180deg, var(--error), #8e3b46);
+        border-color: var(--error);
+        color: #ffeef0;
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px dashed rgba(255,255,255,.25);
+        color: var(--muted);
+        border-radius: 999px;
+      }
+      .btn.ghost:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,.4);
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        gap: 12px;
+        align-items: center;
+        background: linear-gradient(180deg, #141a3a, #101534);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 10px;
+        z-index: 10;
+      }
+      .toolbar input, .toolbar select { height: 40px; }
+      /* Windows等のネイティブドロップダウンで文字が薄くなるのを回避 */
+      select option { color: #162039; background: #ffffff; }
+      select option:checked { color: #ffffff; background: #5563df; }
+      select option:hover { background: #eef1ff; }
+      .search { display: flex; align-items: center; gap: 8px; min-width: 240px; }
+      .search input { width: 100%; }
+      .switch { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+      #category.control { min-width: 200px; }
+      #sort.control { min-width: 180px; }
+
+      .grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+
+      .card:hover {
+        border-color: rgba(255,155,211,.55);
+        transform: translateY(-2px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      }
+
+      .card.dragging {
+        opacity: 0.7;
+        transform: rotate(2deg) scale(0.98);
+        z-index: 1000;
+        box-shadow: 0 20px 40px rgba(255,155,211,.5);
+        pointer-events: none;
+        transition: none;
+        border-color: rgba(255,155,211,.9);
+      }
+
+      .card.drag-over {
+        border-color: rgba(255,155,211,.9);
+        background: linear-gradient(180deg, rgba(255,155,211,.1), rgba(205,180,255,.05));
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(255,155,211,.3);
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: background-color 0.15s ease;
+      }
+
+      .card h3:hover {
+        background-color: rgba(255,255,255,0.05);
+      }
+
+      .drag-handle {
+        font-size: 16px;
+        color: var(--muted);
+        cursor: grab;
+        opacity: 0.9;
+        transition: all 0.15s ease;
+        line-height: 1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-left: 12px;
+        touch-action: none;
+        user-select: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 28px;
+        font-weight: bold;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        position: relative;
+        z-index: 10;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+
+      /* タッチデバイスでの最適化 */
+      @media (hover: none) and (pointer: coarse) {
+        .drag-handle {
+          font-size: 16px;
+          padding: 4px 6px;
+          opacity: 0.9;
+        }
+      }
+
+      .drag-handle:hover {
+        opacity: 1;
+        background: rgba(255,155,211,0.2);
+        border-color: rgba(255,155,211,0.4);
+        color: rgba(255,155,211,0.9);
+        transform: scale(1.05);
+      }
+
+      .card.dragging .drag-handle {
+        cursor: grabbing;
+        background: rgba(255,155,211,0.3);
+        border-color: rgba(255,155,211,0.6);
+        color: rgba(255,155,211,1);
+      }
+      .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+      .chip { background: linear-gradient(180deg, rgba(160,231,229,.16), rgba(205,180,255,.12)); border: 1px solid rgba(160,231,229,.35); padding: 3px 10px; border-radius: 999px; font-size: 11px; color: #e8f8ff; }
+      .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+      .body { color: #d7dbff; font-size: 13px; white-space: pre-wrap; overflow: hidden; max-height: 12em; mask-image: linear-gradient(180deg, #000 80%, transparent); }
+      .actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+      }
+      .left-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .right-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .icon-btn { cursor: pointer; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.03); color: var(--muted); border-radius: 12px; padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; transition: background .15s ease, border-color .15s ease, color .15s ease, transform .05s ease; }
+      .icon-btn:hover { background: rgba(255,255,255,0.08); }
+      .icon-btn[data-active="true"] { color: #ffd86b; border-color: rgba(255,216,107,.55); background: rgba(255,216,107,0.15); }
+      .icon-btn.danger { color: var(--danger); border-color: #5a2b35; background: #1f1116; }
+      .copy-btn { margin-left: auto; width: 112px; text-align: center; }
+      .inline-vars {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        margin-top: 4px;
+      }
+      .inline-vars .field label { font-size: 12px; }
+      .inline-vars .field input { padding: 6px 8px; font-size: 12px; }
+      .inline-vars {
+        background: rgba(255,155,211,0.05);
+        border: 1px dashed rgba(255,155,211,0.3);
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 8px; /* 空白を減らす */
+      }
+      .inline-vars .field {
+        position: relative;
+      }
+      .inline-vars .field.required::after {
+        content: '*';
+        color: var(--danger);
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        font-weight: bold;
+      }
+      .inline-vars .field.optional::after {
+        content: '(任意)';
+        color: var(--muted);
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        font-size: 11px;
+      }
+
+      .footer { margin-top: 26px; color: var(--muted); font-size: 12px; text-align: center; }
+
+      dialog::backdrop { background: rgba(0,0,0,0.55); }
+      dialog {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #181d44, #12173b);
+        color: var(--text);
+        width: min(760px, 92vw);
+        padding: 0;
+        box-shadow: var(--shadow);
+      }
+      .modal-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+      .modal-body { padding: 16px; display: grid; gap: 12px; }
+      .field { display: grid; gap: 6px; }
+      .field label { font-size: 13px; color: var(--muted); }
+      .row { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+      .modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--border); }
+      .help { font-size: 12px; color: var(--muted); }
+      .vars-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+      .vars-grid .field input { width: 100%; }
+      #varsPreview { width: 100%; resize: vertical; }
+
+      .toast {
+        position: fixed; right: 16px; bottom: 16px; background: #16213e; color: #e8f0ff;
+        border: 1px solid #2a3a72; padding: 10px 14px; border-radius: 10px; box-shadow: var(--shadow);
+        opacity: 0; transform: translateY(10px); transition: 0.2s ease; pointer-events: none;
+      }
+      .toast.show { opacity: 1; transform: translateY(0); }
+
+      /* モバイル対応 (480px以下) */
+      @media (max-width: 480px) {
+        .container { padding: 16px 12px; }
+        .card { padding: 12px; }
+        .toolbar { padding: 8px; gap: 8px; }
+        .title h1 { font-size: 20px; }
+        .badge { font-size: 11px; padding: 3px 8px; }
+        .controls { flex-direction: column; gap: 8px; }
+        .btn { padding: 8px 12px; font-size: 13px; }
+        .grid { gap: 12px; }
+        .toast { left: 12px; right: 12px; bottom: 12px; }
+      }
+
+      /* タブレット対応 (481px-768px) */
+      @media (max-width: 768px) {
+        .grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        .toolbar { grid-template-columns: 1fr; gap: 12px; position: static; }
+        header { grid-template-columns: 1fr; gap: 12px; }
+        .row { grid-template-columns: 1fr; }
+        .search { min-width: auto; }
+        .switch { font-size: 12px; }
+      }
+
+      /* デスクトップ対応 (1025px以上) */
+      @media (min-width: 1025px) {
+        .container { max-width: 1400px; }
+        .grid { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
+        .toolbar { grid-template-columns: 1fr auto auto auto auto; }
+      }
+
+      /* 中間サイズ対応 (769px-1024px) */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        .toolbar { grid-template-columns: 1fr auto auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="title">
+          <h1>PromptBox</h1>
+          <span class="badge">用途別・ワンクリックコピー</span>
+        </div>
+        <div class="controls">
+          <button id="openAdd" class="btn">＋ 新規追加</button>
+          <button id="exportBtn" class="btn secondary">エクスポート</button>
+          <button id="importBtn" class="btn ghost">インポート</button>
+          <input id="importFile" type="file" accept="application/json" hidden />
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div class="search">
+          <input id="q" class="control" type="text" placeholder="検索（タイトル・本文・タグ）" />
+        </div>
+        <select id="category" class="control">
+          <option value="">すべてのカテゴリ</option>
+        </select>
+        <select id="sort" class="control">
+          <option value="recent">並び順: 追加が新しい順</option>
+          <option value="title">並び順: タイトル</option>
+          <option value="category">並び順: カテゴリ</option>
+          <option value="favorite">並び順: お気に入り優先</option>
+        </select>
+        <label class="switch"><input id="onlyFav" type="checkbox" /> お気に入りのみ</label>
+      </div>
+
+      <div id="grid" class="grid"></div>
+
+      <div class="footer">
+        <span>ローカルに保存されます（localStorage）。エクスポートでバックアップ可能。</span><br>
+        <span style="font-size: 11px; color: var(--muted);">💡 タイトル右の⋮⋮をドラッグしてカードの順序を変更できます</span>
+      </div>
+    </div>
+
+    <dialog id="addModal">
+      <form method="dialog">
+        <div class="modal-header">
+          <strong>プロンプトを追加</strong>
+          <button type="button" id="closeAdd" class="icon-btn">閉じる</button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="field">
+              <label for="addTitle">タイトル</label>
+              <input id="addTitle" class="control" type="text" placeholder="例: バグ修正の依頼テンプレ" required />
+            </div>
+            <div class="field">
+              <label for="addCategory">カテゴリ</label>
+              <input id="addCategory" class="control" type="text" placeholder="例: バグ修正" list="categoryList" />
+              <datalist id="categoryList"></datalist>
+            </div>
+          </div>
+          <div class="field">
+            <label for="addTags">タグ（カンマ区切り）</label>
+            <input id="addTags" class="control" type="text" placeholder="例: bugfix, debug, steps" />
+          </div>
+          <div class="field">
+            <label for="addBody">本文</label>
+            <textarea id="addBody" class="control" rows="10" placeholder="プロンプト本文を入力" required></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="resetAdd" class="btn ghost">クリア</button>
+          <button type="submit" id="saveAdd" class="btn">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="editModal">
+      <form method="dialog">
+        <div class="modal-header">
+          <strong>プロンプトを編集</strong>
+          <button type="button" id="closeEdit" class="icon-btn">閉じる</button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="field">
+              <label for="editTitle">タイトル</label>
+              <input id="editTitle" class="control" type="text" required />
+            </div>
+            <div class="field">
+              <label for="editCategory">カテゴリ</label>
+              <input id="editCategory" class="control" type="text" list="categoryListEdit" />
+              <datalist id="categoryListEdit"></datalist>
+            </div>
+          </div>
+          <div class="field">
+            <label for="editTags">タグ（カンマ区切り）</label>
+            <input id="editTags" class="control" type="text" />
+          </div>
+          <div class="field">
+            <label for="editBody">本文</label>
+            <textarea id="editBody" class="control" rows="10" required></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="cancelEdit" class="btn ghost">キャンセル</button>
+          <button type="submit" id="saveEdit" class="btn">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      // ------------------------------
+      // 型の目安
+      // Prompt = { id: string, title: string, category: string, tags: string[], body: string, favorite: boolean, createdAt: number }
+      // ------------------------------
+
+      const STORAGE_KEY = "promptBox.prompts.v1";
+
+      /**
+       * 初期プロンプト（必要に応じて自由に編集してください）
+       */
+      const defaultPrompts = [
+        {
+          title: "バグ報告テンプレ（変数）",
+          category: "バグ修正",
+          tags: ["bug", "template", "vars"],
+          body: `[バグID] {{issue_id}}
+[タイトル] {{title}}
+[再現手順]
+{{steps}}
+
+[期待結果]
+{{expected}}
+
+[実際の結果]
+{{actual}}
+
+[優先度] {{priority|normal}}`,
+        },
+        {
+          title: "PRレビュー依頼（変数）",
+          category: "コードレビュー",
+          tags: ["review", "pr", "vars"],
+          body: `PR: {{pr_url}}
+対象範囲: {{scope}}
+重点確認: {{focus|読みやすさ, テスト, 影響範囲}}
+補足: {{notes|なし}}`,
+        },
+        {
+          title: "リリースノート生成（変数）",
+          category: "ドキュメント",
+          tags: ["release", "notes", "vars"],
+          body: `バージョン: {{version}}
+日付: {{date|YYYY-MM-DD}}
+変更点:
+{{changes}}
+
+既知の問題: {{known_issues|なし}}`,
+        },
+        {
+          title: "汎用コーディング依頼",
+          category: "コーディング一般",
+          tags: ["coding", "implementation"],
+          body: `次の仕様を満たすコードを実装してください。
+要件:
+- 機能:
+- 入力/出力:
+- 境界条件:
+品質:
+- 可読性を重視し、意味のある命名を徹底する
+- エラーハンドリングとログ出力を実装する
+追加:
+- 単体テスト（正常系/異常系）も作成する`,
+        },
+        {
+          title: "バグ修正テンプレ",
+          category: "バグ修正",
+          tags: ["bugfix", "debug"],
+          body: `次の不具合を原因特定し、修正案を提示してください。
+症状:
+再現手順:
+期待結果:
+ログ/スタックトレース:
+制約:
+- 既存の公開APIは変更しない
+出力:
+- 原因候補のリストと再現条件
+- 修正方針（影響範囲、代替案）
+- 最小修正のコード例`,
+        },
+        {
+          title: "安全なリファクタリング計画",
+          category: "リファクタリング",
+          tags: ["refactor", "design"],
+          body: `このコードを読みやすさと拡張性を高めるためにリファクタリングしてください。
+条件:
+- ふるまいは変更しない
+- 関数は短く、早期リターンを使う
+- 命名はドメイン語彙で明確に
+出力:
+- 課題の列挙
+- リファクタリングのステップ分解
+- リスクとテスト観点
+- 変更後のサンプルコード`,
+        },
+        {
+          title: "READMEドラフト生成",
+          category: "ドキュメント",
+          tags: ["docs", "readme"],
+          body: `プロジェクトのREADMEの草案を作成してください。
+含める項目:
+- プロジェクト概要 / スクリーンショット（任意）
+- セットアップ / 必要要件
+- 使い方（コマンド/設定例）
+- 設計の要点 / ディレクトリ構成
+- テスト / CI
+- ライセンス
+トーン: 初学者にも配慮しつつ簡潔`,
+        },
+        {
+          title: "ユニットテスト生成",
+          category: "テスト",
+          tags: ["test", "unit"],
+          body: `対象コードの単体テストを作成してください。
+前提:
+- フレームワーク:
+- 観点: 正常系/境界値/異常系
+出力:
+- テストケース一覧（入力/期待/目的）
+- 実装コードとモック方針
+- 実行方法`,
+        },
+        {
+          title: "コミットメッセージ整形（Conventional Commits）",
+          category: "Git/コミット",
+          tags: ["git", "commit"],
+          body: `変更内容をConventional Commitsの形式で要約してください。
+入力: 変更点の箇条書き
+出力: type(scope)!: subject とボディ（理由/影響/移行）
+注意: 日本語で簡潔に`,
+        },
+        {
+          title: "コードレビュー依頼テンプレ",
+          category: "コードレビュー",
+          tags: ["review", "pr"],
+          body: `この差分のレビュー観点を提案してください。
+前提: 目的/背景/方針/制約
+観点例: 正しさ/読みやすさ/責務分離/命名/テスト/性能/セキュリティ/影響範囲
+出力: チェックリストと重点確認ポイント`,
+        },
+        {
+          title: "ユーザーストーリーと受け入れ基準",
+          category: "プロダクト仕様",
+          tags: ["spec", "ux"],
+          body: `要求からユーザーストーリーと受け入れ基準を作成してください。
+フォーマット:
+As a [ユーザー], I want [価値], so that [目的].
+受け入れ基準: Gherkin風にGiven/When/Then`,
+        },
+        {
+          title: "技術文書の要約と平易化",
+          category: "翻訳/要約",
+          tags: ["summary", "simplify"],
+          body: `以下の技術文書を、非エンジニアにも伝わるように要約してください。
+条件:
+- 専門用語には簡潔な補足を添える
+- 比喩は控えめに具体例を
+出力: 箇条書き＋100字要約`,
+        },
+        {
+          title: "SQL最適化アドバイス",
+          category: "データ/SQL",
+          tags: ["sql", "performance"],
+          body: `以下のSQLを性能面からレビューし、最適化案を提示してください。
+出力:
+- 実行計画上の懸念
+- インデックス戦略
+- 再設計案（正規化/非正規化/分割）
+- 安全な段階的移行案`,
+        },
+        {
+          title: "正規表現作成支援",
+          category: "正規表現",
+          tags: ["regex"],
+          body: `要件を満たす正規表現を設計し、テストケースを提示してください。
+要件:
+- マッチ例/非マッチ例
+- フラグ/グルーピングの意図
+出力: 正規表現 / 説明 / 代表テスト`,
+        },
+        {
+          title: "プロンプト改善",
+          category: "プロンプト",
+          tags: ["prompt", "improve"],
+          body: `以下のプロンプトを、曖昧さを減らし再現性を高める形に書き直してください。
+出力:
+- 改善版プロンプト
+- 変更意図（スコープ/制約/出力形式）
+- 成功基準`,
+        },
+      ].map((p, i) => ({ id: cryptoRandomId(), favorite: false, createdAt: Date.now() + i, ...p }));
+
+      // 既存ユーザーにも一度だけ変数サンプルを配布
+      const MIGRATION_PLACEHOLDER_SAMPLES = "promptBox.migration.placeholderSamples.v1";
+
+      // ------------------------------
+      // ユーティリティ
+      // ------------------------------
+      function cryptoRandomId() {
+        if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+        return 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      }
+
+      // ドラッグ操作のデバッグ用関数
+      function logDragEvent(eventType, details = {}) {
+        console.log(`[ドラッグデバッグ] ${eventType}:`, {
+          timestamp: new Date().toISOString(),
+          ...details
+        });
+      }
+
+      // ドラッグデータを安全に保持するためのグローバル変数
+      let currentDragData = null;
+
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      function saveToStorage(prompts) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
+      }
+
+      function loadFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return null;
+          return parsed;
+        } catch { return null; }
+      }
+
+      // トースト通知のキュー管理
+      let toastQueue = [];
+      let isToastShowing = false;
+
+      function showToast(message) {
+        toastQueue.push(message);
+        processToastQueue();
+      }
+
+      function processToastQueue() {
+        if (isToastShowing || toastQueue.length === 0) return;
+
+        isToastShowing = true;
+        const message = toastQueue.shift();
+        const el = document.getElementById('toast');
+
+        el.textContent = message;
+        el.setAttribute('aria-live', 'assertive');
+        el.setAttribute('aria-atomic', 'true');
+        el.classList.add('show');
+
+        setTimeout(() => {
+          el.classList.remove('show');
+          el.removeAttribute('aria-live');
+          el.removeAttribute('aria-atomic');
+          isToastShowing = false;
+
+          // キューに次のメッセージがあれば処理
+          if (toastQueue.length > 0) {
+            setTimeout(processToastQueue, 200);
+          }
+        }, 1500);
+      }
+
+      async function copyToClipboard(text) {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const ta = document.createElement('textarea');
+            ta.value = text; document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+          }
+          showToast('コピーしました');
+        } catch (e) {
+          console.error(e);
+          showToast('コピーに失敗しました');
+        }
+      }
+
+      // 変数展開ユーティリティ
+      function extractVariables(template) {
+        const regex = /\{\{\s*([^\}\s\|]+)(?:\|([^}]*))?\s*\}\}/g;
+        const map = new Map();
+        let m;
+        while ((m = regex.exec(template))) {
+          const name = m[1];
+          const def = m[2] ?? '';
+          if (!map.has(name)) map.set(name, def);
+        }
+        return map; // Map<name, default>
+      }
+
+      function applyVariables(template, values) {
+        return template.replace(/\{\{\s*([^\}\s\|]+)(?:\|([^}]*))?\s*\}\}/g, (all, name, def) => {
+          const v = values[name];
+          if (v == null || v === '') return def ?? '';
+          return String(v);
+        });
+      }
+
+      function hasAllVariablesFilled(template, values) {
+        const map = extractVariables(template);
+        for (const [name, def] of map.entries()) {
+          const v = values[name];
+          if ((v == null || v === '') && (def == null || def === '')) return false;
+        }
+        return true;
+      }
+
+      // ------------------------------
+      // 状態
+      // ------------------------------
+      let prompts = loadFromStorage() ?? defaultPrompts;
+      if (!loadFromStorage()) {
+        // 初回起動: そのまま保存
+        saveToStorage(prompts);
+      } else {
+        // 既存ユーザー: サンプル未投入なら追記
+        try {
+          const migrated = localStorage.getItem(MIGRATION_PLACEHOLDER_SAMPLES);
+          if (!migrated) {
+            const samples = defaultPrompts.filter(p => p.tags?.includes('vars'));
+            if (samples.length) {
+              prompts = [...samples.map(s => ({ ...s, id: cryptoRandomId(), createdAt: Date.now() })), ...prompts];
+              saveToStorage(prompts);
+            }
+            localStorage.setItem(MIGRATION_PLACEHOLDER_SAMPLES, '1');
+          }
+        } catch {}
+      }
+
+      const state = {
+        query: '',
+        category: '',
+        onlyFavorite: false,
+        sort: 'recent',
+      };
+
+      // ------------------------------
+      // 描画
+      // ------------------------------
+      const grid = document.getElementById('grid');
+      const categorySelect = document.getElementById('category');
+      const sortSelect = document.getElementById('sort');
+      const onlyFavInput = document.getElementById('onlyFav');
+      const qInput = document.getElementById('q');
+
+      function renderCategoryOptions() {
+        const categories = Array.from(new Set(prompts.map(p => p.category))).sort((a, b) => a.localeCompare(b, 'ja'));
+        const list = document.getElementById('categoryList');
+        const listEdit = document.getElementById('categoryListEdit');
+        list.innerHTML = '';
+        if (listEdit) listEdit.innerHTML = '';
+        categorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
+        categories.forEach(c => {
+          const opt = document.createElement('option'); opt.value = c; opt.textContent = c; categorySelect.appendChild(opt);
+          const dataOpt = document.createElement('option'); dataOpt.value = c; list.appendChild(dataOpt);
+          if (listEdit) {
+            const dataOpt2 = document.createElement('option'); dataOpt2.value = c; listEdit.appendChild(dataOpt2);
+          }
+        });
+        if (state.category && !categories.includes(state.category)) state.category = '';
+      }
+
+      function normalize(text) {
+        return (text || '').toLowerCase();
+      }
+
+      function filterAndSort(items) {
+        const q = normalize(state.query);
+        let result = items.filter(p => {
+          if (state.category && p.category !== state.category) return false;
+          if (state.onlyFavorite && !p.favorite) return false;
+          if (!q) return true;
+          const inTitle = normalize(p.title).includes(q);
+          const inBody = normalize(p.body).includes(q);
+          const inTags = (p.tags || []).some(t => normalize(t).includes(q));
+          const inCategory = normalize(p.category).includes(q);
+          return inTitle || inBody || inTags || inCategory;
+        });
+
+        switch (state.sort) {
+          case 'title':
+            result.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+            break;
+          case 'category':
+            result.sort((a, b) => a.category.localeCompare(b.category, 'ja') || a.title.localeCompare(b.title, 'ja'));
+            break;
+          case 'favorite':
+            result.sort((a, b) => Number(b.favorite) - Number(a.favorite) || b.createdAt - a.createdAt);
+            break;
+          case 'recent':
+          default:
+            result.sort((a, b) => b.createdAt - a.createdAt);
+        }
+        return result;
+      }
+
+      function createCard(p) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const title = document.createElement('h3');
+        title.textContent = p.title;
+        title.style.cursor = 'grab';
+        title.style.userSelect = 'none'; // テキスト選択を防止
+
+        // ドラッグハンドルを追加
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.innerHTML = '⋮⋮';
+        dragHandle.title = 'ドラッグして並べ替え';
+        dragHandle.draggable = true;
+        title.appendChild(dragHandle);
+
+        card.dataset.id = p.id;
+        card.draggable = true; // カード全体をドラッグ可能に
+
+        // ドラッグハンドルからもドラッグ可能
+        dragHandle.draggable = true;
+
+        // ドラッグハンドルのマウスダウンを確実にキャプチャ
+        dragHandle.addEventListener('mousedown', (e) => {
+          if (e.button === 0) { // 左クリックのみ
+            logDragEvent('ドラッグハンドルmousedown', { cardId: p.id, button: e.button });
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+        // ドラッグハンドルからのドラッグ開始
+        dragHandle.addEventListener('dragstart', (e) => {
+          // 左クリックのみ許可
+          if (e.button !== 0) {
+            logDragEvent('ハンドルドラッグ拒否', { button: e.button, reason: '左クリック以外' });
+            e.preventDefault();
+            return;
+          }
+
+          logDragEvent('ハンドルドラッグ開始', { cardId: p.id, button: e.button });
+
+          // 重要な修正: データを複数の方法で保存
+          e.dataTransfer.clearData();
+
+          // 複数のデータ形式で保存（ブラウザ互換性のため）
+          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
+          e.dataTransfer.setData('text/plain', p.id);
+          e.dataTransfer.setData('application/json', dragData);
+          e.dataTransfer.effectAllowed = 'move';
+
+          // データが正しく設定されたことを確認
+          logDragEvent('データ設定確認', {
+            cardId: p.id,
+            plainText: e.dataTransfer.getData('text/plain'),
+            jsonData: e.dataTransfer.getData('application/json'),
+            types: Array.from(e.dataTransfer.types)
+          });
+
+          // グローバル変数にも保存（バックアップ）
+          currentDragData = p.id;
+
+          card.classList.add('dragging');
+          card.dataset.dragging = 'handle';
+
+          // イベント伝播を完全に停止（dataTransfer操作後）
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        });
+
+        dragHandle.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          delete card.dataset.dragging;
+        });
+
+        // タイトル全体もドラッグ可能に
+        title.draggable = true;
+        title.addEventListener('dragstart', (e) => {
+          // ドラッグハンドルからのイベントのみ許可
+          if (!e.target.closest('.drag-handle')) {
+            logDragEvent('タイトルドラッグ拒否', {
+              reason: 'ドラッグハンドル以外からのドラッグ',
+              target: e.target.tagName,
+              cardId: p.id
+            });
+            e.preventDefault();
+            return;
+          }
+
+          // 左クリックのみ許可
+          if (e.button !== 0) {
+            logDragEvent('タイトルドラッグ拒否', { button: e.button, reason: '左クリック以外' });
+            e.preventDefault();
+            return;
+          }
+
+          logDragEvent('タイトルドラッグ開始', { cardId: p.id, button: e.button });
+
+          // 重要な修正: データを複数の方法で保存
+          e.dataTransfer.clearData();
+
+          // 複数のデータ形式で保存（ブラウザ互換性のため）
+          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
+          e.dataTransfer.setData('text/plain', p.id);
+          e.dataTransfer.setData('application/json', dragData);
+          e.dataTransfer.effectAllowed = 'move';
+
+          // データが正しく設定されたことを確認
+          logDragEvent('タイトルデータ設定確認', {
+            cardId: p.id,
+            plainText: e.dataTransfer.getData('text/plain'),
+            jsonData: e.dataTransfer.getData('application/json'),
+            types: Array.from(e.dataTransfer.types)
+          });
+
+          // グローバル変数にも保存（バックアップ）
+          currentDragData = p.id;
+
+          card.classList.add('dragging');
+          card.dataset.dragging = 'title';
+
+          // イベント伝播を完全に停止（dataTransfer操作後）
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        });
+
+        title.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          delete card.dataset.dragging;
+        });
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const cat = document.createElement('span'); cat.className = 'chip'; cat.textContent = p.category || '未分類';
+        const tags = document.createElement('div'); tags.className = 'tags';
+        (p.tags || []).forEach(t => { const s = document.createElement('span'); s.className = 'chip'; s.textContent = `#${t}`; tags.appendChild(s); });
+        meta.appendChild(cat); meta.appendChild(tags);
+
+        // インライン変数入力
+        const varsMap = extractVariables(p.body);
+
+        const body = document.createElement('div');
+        body.className = 'body';
+        body.textContent = p.body;
+
+        // 変数がない場合は本文表示を拡張
+        if (varsMap.size === 0) {
+          body.style.maxHeight = '16em'; // 変数がない場合はより多くの行を表示
+        } else {
+          body.style.maxHeight = '12em'; // 変数がある場合もデフォルトより多く表示
+        }
+        let inlineValues = {};
+        let inputsReady = varsMap.size === 0;
+        let varsContainer = null;
+        if (varsMap.size > 0) {
+          varsContainer = document.createElement('div');
+          varsContainer.className = 'inline-vars';
+          varsMap.forEach((def, name) => {
+            const wrap = document.createElement('div');
+            wrap.className = def ? 'field optional' : 'field required';
+            const label = document.createElement('label');
+            label.textContent = name;
+            const input = document.createElement('input');
+            input.className = 'control';
+            input.type = 'text';
+            input.placeholder = def ? `既定: ${def}` : `${name} を入力`;
+            input.value = '';
+            input.addEventListener('input', () => {
+              inlineValues[name] = input.value;
+              updateCopyAvailability();
+            });
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            varsContainer.appendChild(wrap);
+          });
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const left = document.createElement('div'); left.className = 'left-actions';
+        const fav = document.createElement('button');
+        fav.className = 'icon-btn';
+        fav.setAttribute('aria-label', p.favorite ? 'お気に入りから削除' : 'お気に入りに追加');
+        fav.setAttribute('aria-pressed', String(Boolean(p.favorite)));
+        fav.title = p.favorite ? 'お気に入りから削除' : 'お気に入りに追加';
+        fav.dataset.active = String(Boolean(p.favorite));
+        fav.textContent = p.favorite ? '★' : '☆';
+        fav.addEventListener('click', () => {
+          p.favorite = !p.favorite;
+          fav.dataset.active = String(Boolean(p.favorite));
+          fav.textContent = p.favorite ? '★' : '☆';
+          saveToStorage(prompts);
+          if (state.onlyFavorite) render();
+        });
+
+        const expand = document.createElement('button');
+        expand.className = 'icon-btn';
+        expand.setAttribute('aria-label', '本文の表示を切り替え');
+        expand.setAttribute('aria-expanded', 'false');
+        expand.textContent = '全文表示';
+        let expanded = false;
+        expand.addEventListener('click', () => {
+          expanded = !expanded;
+          expand.setAttribute('aria-expanded', String(expanded));
+          if (expanded) {
+            body.style.maxHeight = 'unset';
+            body.style.maskImage = 'none';
+            expand.textContent = '折りたたむ';
+            expand.setAttribute('aria-label', '本文を折りたたむ');
+          } else {
+            // 変数がない場合はより多くの行を表示
+            body.style.maxHeight = varsMap.size === 0 ? '16em' : '12em';
+            body.style.maskImage = 'linear-gradient(180deg, #000 80%, transparent)';
+            expand.textContent = '全文表示';
+            expand.setAttribute('aria-label', '本文を展開');
+          }
+        });
+
+        left.appendChild(fav);
+        left.appendChild(expand);
+
+        const copy = document.createElement('button');
+        copy.className = 'btn copy-btn';
+        copy.textContent = 'コピー';
+        copy.style.minWidth = '92px';
+        function updateCopyAvailability() {
+          if (varsMap.size === 0) {
+            copy.disabled = false;
+            copy.title = '';
+            return;
+          }
+          const ready = hasAllVariablesFilled(p.body, inlineValues);
+          copy.disabled = !ready;
+          copy.title = ready ? '' : 'すべてのプレースホルダに入力してください';
+        }
+        updateCopyAvailability();
+        copy.addEventListener('click', async () => {
+          const template = p.body;
+          const text = varsMap.size > 0 ? applyVariables(template, inlineValues) : template;
+          copy.disabled = true;
+          try {
+            await copyToClipboard(text);
+            const oldText = copy.textContent;
+            copy.textContent = 'コピー済み';
+            copy.classList.add('copied');
+            setTimeout(() => {
+              copy.classList.remove('copied');
+              copy.textContent = oldText;
+              copy.disabled = false;
+              updateCopyAvailability();
+            }, 900);
+          } catch (e) {
+            const oldText = copy.textContent;
+            copy.textContent = 'コピー失敗';
+            copy.classList.add('failed');
+            setTimeout(() => {
+              copy.classList.remove('failed');
+              copy.textContent = oldText;
+              copy.disabled = false;
+              updateCopyAvailability();
+            }, 1200);
+          }
+        });
+
+        const del = document.createElement('button');
+        del.className = 'icon-btn danger';
+        del.textContent = '削除';
+        del.setAttribute('aria-label', `${p.title}を削除`);
+        del.addEventListener('click', () => {
+          if (!confirm('このプロンプトを削除しますか？')) return;
+          prompts = prompts.filter(x => x.id !== p.id);
+          saveToStorage(prompts);
+          render();
+          showToast('削除しました');
+        });
+
+        const edit = document.createElement('button');
+        edit.className = 'icon-btn';
+        edit.textContent = '編集';
+        edit.setAttribute('aria-label', `${p.title}を編集`);
+        edit.addEventListener('click', () => openEditModal(p));
+
+        // アクションエリアを再構成
+        const right = document.createElement('div');
+        right.className = 'right-actions';
+        right.appendChild(copy);
+
+        // 削除ボタンを右側に移動（誤操作防止）
+        right.appendChild(del);
+        right.appendChild(edit);
+
+        actions.appendChild(left);
+        actions.appendChild(right);
+
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(body);
+        if (varsContainer) card.appendChild(varsContainer);
+        card.appendChild(actions);
+
+        // カード全体のマウスダウンを確実にキャプチャ（ドラッグハンドル除く）
+        card.addEventListener('mousedown', (e) => {
+          // ドラッグハンドルからのイベントは処理しない
+          if (e.target.closest('.drag-handle') || e.target.closest('h3')) {
+            return;
+          }
+
+          // クリック可能要素からのドラッグは拒否
+          if (e.target.closest('button, a, .icon-btn, .btn')) {
+            logDragEvent('カードクリック要素mousedown', {
+              target: e.target.tagName,
+              cardId: p.id
+            });
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          if (e.button === 0) {
+            logDragEvent('カードmousedown', { cardId: p.id, button: e.button });
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+
+        // カード全体でもドラッグ可能に（ドラッグハンドル以外の場合）
+        card.addEventListener('dragstart', (e) => {
+          // 左クリックのみ許可
+          if (e.button !== 0) {
+            logDragEvent('カードドラッグ拒否', { button: e.button, reason: '左クリック以外' });
+            e.preventDefault();
+            return;
+          }
+
+          // 既にドラッグ中の場合は処理しない
+          if (card.dataset.dragging) {
+            logDragEvent('カードドラッグスキップ', { reason: '既にドラッグ中', cardId: p.id });
+            return;
+          }
+
+          // ドラッグハンドルやタイトルからのイベントの場合は処理しない
+          if (e.target === dragHandle || e.target === title || e.target.closest('.drag-handle') || e.target.closest('h3')) {
+            logDragEvent('カードドラッグスキップ', {
+              reason: 'ハンドル/タイトルからのイベント',
+              target: e.target.tagName,
+              cardId: p.id
+            });
+            return;
+          }
+
+          // カード内のクリック可能な要素（ボタン、リンクなど）からのドラッグは拒否
+          if (e.target.closest('button, a, .icon-btn, .btn')) {
+            logDragEvent('カードドラッグ拒否', {
+              reason: 'クリック可能要素からのドラッグ',
+              target: e.target.tagName,
+              cardId: p.id
+            });
+            e.preventDefault();
+            return;
+          }
+
+          logDragEvent('カードドラッグ開始', { cardId: p.id, button: e.button });
+
+          // 重要な修正: データを複数の方法で保存
+          e.dataTransfer.clearData();
+
+          // 複数のデータ形式で保存（ブラウザ互換性のため）
+          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
+          e.dataTransfer.setData('text/plain', p.id);
+          e.dataTransfer.setData('application/json', dragData);
+          e.dataTransfer.effectAllowed = 'move';
+
+          // データが正しく設定されたことを確認
+          logDragEvent('カードデータ設定確認', {
+            cardId: p.id,
+            plainText: e.dataTransfer.getData('text/plain'),
+            jsonData: e.dataTransfer.getData('application/json'),
+            types: Array.from(e.dataTransfer.types)
+          });
+
+          // グローバル変数にも保存（バックアップ）
+          currentDragData = p.id;
+
+          card.classList.add('dragging');
+          card.dataset.dragging = 'card';
+
+          // イベント伝播を完全に停止（dataTransfer操作後）
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        });
+
+        // ドラッグ終了時の処理を確実に実行
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+          delete card.dataset.dragging;
+        });
+
+        return card;
+      }
+
+      function openEditModal(p) {
+        currentEdit = p;
+        editTitle.value = p.title;
+        editCategory.value = p.category || '';
+        editTags.value = (p.tags || []).join(', ');
+        editBody.value = p.body;
+        editModal.showModal();
+        editTitle.focus();
+      }
+
+      const ITEMS_PER_PAGE = 50;
+      let currentPage = 0;
+      let hasMoreItems = false;
+
+      function render() {
+        renderCategoryOptions();
+        const items = filterAndSort(prompts);
+        grid.innerHTML = '';
+        currentPage = 0;
+
+        if (!items.length) {
+          const empty = document.createElement('div');
+          empty.className = 'card';
+          empty.innerHTML = '<div class="meta">結果がありません。フィルタを調整してください。</div>';
+          grid.appendChild(empty);
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        const itemsToShow = items.slice(0, ITEMS_PER_PAGE);
+        hasMoreItems = items.length > ITEMS_PER_PAGE;
+
+        itemsToShow.forEach(p => fragment.appendChild(createCard(p)));
+
+        // 「もっと表示」ボタンの追加
+        if (hasMoreItems) {
+          const loadMoreBtn = document.createElement('button');
+          loadMoreBtn.className = 'btn secondary';
+          loadMoreBtn.textContent = `もっと表示 (${items.length - ITEMS_PER_PAGE}件)`;
+          loadMoreBtn.style.margin = '20px auto';
+          loadMoreBtn.style.display = 'block';
+          loadMoreBtn.addEventListener('click', () => loadMoreItems(items));
+          fragment.appendChild(loadMoreBtn);
+        }
+
+        grid.appendChild(fragment);
+
+        // グリッドコンテナにドロップイベントハンドラーを追加
+        setupGridDragAndDrop();
+
+        // 追加のデバッグイベントリスナー
+        document.addEventListener('dragenter', (e) => {
+          logDragEvent('ドキュメントdragenter', {
+            target: e.target.tagName,
+            currentTarget: e.currentTarget.tagName,
+            hasDataTransfer: !!e.dataTransfer,
+            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
+            dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null'
+          });
+        });
+
+        document.addEventListener('dragleave', (e) => {
+          if (!document.contains(e.relatedTarget)) {
+            logDragEvent('ドキュメントdragleave', {
+              target: e.target.tagName,
+              relatedTarget: e.relatedTarget?.tagName || 'null',
+              hasDataTransfer: !!e.dataTransfer,
+              dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
+              dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null'
+            });
+          }
+        });
+
+        // dataTransferの変更を監視するイベントリスナー
+        document.addEventListener('drag', (e) => {
+          if (e.dataTransfer) {
+            const plainData = e.dataTransfer.getData('text/plain');
+            let jsonData = null;
+            try {
+              jsonData = e.dataTransfer.getData('application/json');
+            } catch (error) {
+              // JSONデータがない場合は無視
+            }
+
+            logDragEvent('ドキュメントdrag', {
+              target: e.target.tagName,
+              plainData: plainData || 'empty',
+              jsonData: jsonData ? 'present' : 'empty',
+              dataTypes: Array.from(e.dataTransfer.types),
+              effectAllowed: e.dataTransfer.effectAllowed,
+              hasBackupData: !!currentDragData
+            });
+
+            // ドラッグ中にデータが失われた場合の警告
+            if (!plainData && !jsonData && currentDragData) {
+              logDragEvent('ドラッグ中データ損失検知', {
+                backupData: currentDragData,
+                dataTypes: Array.from(e.dataTransfer.types)
+              });
+            }
+          }
+        });
+
+        // ドラッグ開始から終了までの時間を監視
+        let dragStartTime = null;
+        document.addEventListener('dragstart', () => {
+          dragStartTime = Date.now();
+          logDragEvent('ドラッグ開始時間記録', { startTime: dragStartTime });
+        });
+
+        document.addEventListener('dragend', () => {
+          if (dragStartTime) {
+            const dragDuration = Date.now() - dragStartTime;
+            logDragEvent('ドラッグ持続時間', { duration: dragDuration });
+            dragStartTime = null;
+          }
+        });
+      }
+
+      function setupGridDragAndDrop() {
+        grid.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+
+          // デバッグ: ドラッグ中のデータを確認（複数の形式を試す）
+          let draggedId = e.dataTransfer.getData('text/plain');
+
+          // text/plainが空の場合はapplication/jsonを試す
+          if (!draggedId) {
+            try {
+              const jsonData = e.dataTransfer.getData('application/json');
+              if (jsonData) {
+                const parsed = JSON.parse(jsonData);
+                draggedId = parsed.id;
+                logDragEvent('グリッドdragover JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
+              }
+            } catch (error) {
+              logDragEvent('グリッドdragover JSONパースエラー', { error: error.message });
+            }
+          }
+
+          // それでも空の場合はバックアップを使用
+          if (!draggedId && currentDragData) {
+            draggedId = currentDragData;
+            logDragEvent('グリッドdragover バックアップデータ使用', { backupData: draggedId });
+          }
+
+          if (!draggedId) {
+            logDragEvent('グリッドdragover失敗', {
+              reason: 'ドラッグデータが空',
+              dataTypes: Array.from(e.dataTransfer.types),
+              hasBackupData: !!currentDragData
+            });
+            return;
+          }
+
+          logDragEvent('グリッドdragover', {
+            draggedId,
+            mouseY: e.clientY,
+            target: e.target.tagName
+          });
+
+          // ドロップ位置の視覚フィードバック
+          document.querySelectorAll('.card.drag-over').forEach(card => {
+            card.classList.remove('drag-over');
+          });
+
+          const afterElement = getDragAfterElement(grid, e.clientY);
+          if (afterElement) {
+            afterElement.classList.add('drag-over');
+            logDragEvent('ドロップ位置ハイライト', {
+              afterElementId: afterElement.dataset.id
+            });
+          }
+        });
+
+        grid.addEventListener('drop', (e) => {
+          e.preventDefault();
+
+          logDragEvent('グリッドドロップ開始', {
+            hasDataTransfer: !!e.dataTransfer,
+            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
+            mouseY: e.clientY
+          });
+
+          if (!e.dataTransfer) {
+            logDragEvent('ドロップ失敗', { reason: 'dataTransferが存在しません' });
+            cleanupDragState();
+            return;
+          }
+
+          let draggedId = e.dataTransfer.getData('text/plain');
+
+          // text/plainが空の場合はapplication/jsonを試す
+          if (!draggedId) {
+            try {
+              const jsonData = e.dataTransfer.getData('application/json');
+              if (jsonData) {
+                const parsed = JSON.parse(jsonData);
+                draggedId = parsed.id;
+                logDragEvent('JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
+              }
+            } catch (error) {
+              logDragEvent('JSONパースエラー', { error: error.message });
+            }
+          }
+
+          // dataTransferのデータが空の場合はグローバル変数から取得
+          if (!draggedId && currentDragData) {
+            logDragEvent('バックアップデータ使用', { backupData: currentDragData });
+            draggedId = currentDragData;
+          }
+
+          if (!draggedId) {
+            logDragEvent('ドロップ失敗', {
+              reason: 'ドラッグデータが空',
+              dataTypes: Array.from(e.dataTransfer.types),
+              hasBackupData: !!currentDragData
+            });
+            cleanupDragState();
+            return;
+          }
+
+          const draggingCard = document.querySelector(`[data-id="${draggedId}"]`);
+          if (!draggingCard) {
+            logDragEvent('ドロップ失敗', { draggedId, reason: 'ドラッグ中のカードが見つかりません' });
+            cleanupDragState();
+            return;
+          }
+
+          // ドロップ位置を取得
+          const afterElement = getDragAfterElement(grid, e.clientY);
+
+          // ドラッグ中のカードを適切な位置に移動
+          try {
+            if (afterElement && afterElement !== draggingCard) {
+              grid.insertBefore(draggingCard, afterElement);
+            } else if (!afterElement) {
+              grid.appendChild(draggingCard);
+            }
+
+            // 順序を更新
+            updatePromptOrder();
+            showToast('順序を保存しました');
+            logDragEvent('ドロップ成功', { draggedId, afterElementId: afterElement?.dataset.id || 'end' });
+          } catch (error) {
+            logDragEvent('ドロップエラー', { draggedId, error: error.message });
+            showToast('順序の保存に失敗しました');
+          } finally {
+            // グローバル変数をクリア
+            currentDragData = null;
+            // 視覚効果をリセット（確実に実行）
+            cleanupDragState();
+          }
+        });
+
+        // ドラッグがグリッド外に出た場合の処理
+        grid.addEventListener('dragleave', (e) => {
+          if (!grid.contains(e.relatedTarget)) {
+            logDragEvent('グリッドdragleave', {
+              reason: 'グリッド外に出た',
+              target: e.target.tagName,
+              relatedTarget: e.relatedTarget?.tagName || 'null'
+            });
+            document.querySelectorAll('.card.drag-over').forEach(card => {
+              card.classList.remove('drag-over');
+            });
+          }
+        });
+
+        // 安全策：ドキュメント全体でドラッグ終了を監視
+        document.addEventListener('dragend', (e) => {
+          logDragEvent('ドキュメントdragend', {
+            hasDataTransfer: !!e.dataTransfer,
+            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
+            dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null',
+            target: e.target.tagName,
+            type: e.type
+          });
+
+          // ドラッグが完了またはキャンセルされた場合のクリーンアップ
+          cleanupDragState();
+
+          // ドラッグデータが空の場合（キャンセルされた場合）は順序を保存しない
+          let draggedId = e.dataTransfer ? e.dataTransfer.getData('text/plain') : null;
+
+          // text/plainが空の場合はapplication/jsonを試す
+          if (!draggedId && e.dataTransfer) {
+            try {
+              const jsonData = e.dataTransfer.getData('application/json');
+              if (jsonData) {
+                const parsed = JSON.parse(jsonData);
+                draggedId = parsed.id;
+                logDragEvent('dragend JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
+              }
+            } catch (error) {
+              logDragEvent('dragend JSONパースエラー', { error: error.message });
+            }
+          }
+
+          // dataTransferのデータが空の場合はグローバル変数から取得
+          if (!draggedId && currentDragData) {
+            logDragEvent('dragendバックアップデータ使用', { backupData: currentDragData });
+            draggedId = currentDragData;
+          }
+
+          if (!draggedId) {
+            logDragEvent('ドラッグキャンセル', {
+              reason: 'ドラッグデータが空',
+              hasDataTransfer: !!e.dataTransfer,
+              dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
+              hasBackupData: !!currentDragData
+            });
+            currentDragData = null; // バックアップデータもクリア
+            return;
+          }
+
+          logDragEvent('ドラッグ完了', { draggedId });
+          currentDragData = null; // 完了後はクリア
+        });
+      }
+
+      // ドラッグ状態の一元化クリーンアップ関数
+      function cleanupDragState() {
+        // すべてのdraggingクラス、drag-overクラス、dragging属性を削除
+        document.querySelectorAll('.card.dragging, .card.drag-over').forEach(card => {
+          card.classList.remove('dragging', 'drag-over');
+          delete card.dataset.dragging;
+        });
+      }
+
+      function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+
+          // マウスが要素の上半分にある場合のみ考慮
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+      }
+
+
+
+      function updatePromptOrder() {
+        const cards = [...grid.querySelectorAll('.card')];
+        const newOrder = cards.map(card => card.dataset.id);
+        const orderedPrompts = newOrder.map(id => prompts.find(p => p.id === id)).filter(Boolean);
+
+        prompts = orderedPrompts;
+        saveToStorage(prompts);
+      }
+
+      function loadMoreItems(allItems) {
+        currentPage++;
+        const start = currentPage * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const itemsToAdd = allItems.slice(start, end);
+        hasMoreItems = allItems.length > end;
+
+        const fragment = document.createDocumentFragment();
+        itemsToAdd.forEach(p => fragment.appendChild(createCard(p)));
+
+        // 「もっと表示」ボタンを更新または削除
+        const loadMoreBtn = grid.querySelector('.btn.secondary');
+        if (loadMoreBtn) {
+          if (hasMoreItems) {
+            loadMoreBtn.textContent = `もっと表示 (${allItems.length - end}件)`;
+          } else {
+            loadMoreBtn.remove();
+          }
+        }
+
+        grid.appendChild(fragment);
+
+        // 新しいカードにもドラッグ＆ドロップ機能を適用
+        setupGridDragAndDrop();
+      }
+
+      // ------------------------------
+      // イベント
+      // ------------------------------
+      const debouncedSearch = debounce(() => {
+        state.query = qInput.value;
+        render();
+      }, 300);
+
+      qInput.addEventListener('input', debouncedSearch);
+      categorySelect.addEventListener('change', (e) => { state.category = e.target.value; render(); });
+      onlyFavInput.addEventListener('change', (e) => { state.onlyFavorite = e.target.checked; render(); });
+      sortSelect.addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const data = JSON.stringify(prompts, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'promptbox-export.json'; a.click();
+        URL.revokeObjectURL(url);
+        showToast('JSONをエクスポートしました');
+      });
+
+      document.getElementById('importBtn').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+      });
+
+      document.getElementById('importFile').addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const json = JSON.parse(text);
+          if (!Array.isArray(json)) throw new Error('invalid');
+          // 最低限の正規化
+          prompts = json.map(p => ({
+            id: p.id || cryptoRandomId(),
+            title: String(p.title || '無題'),
+            category: String(p.category || '未分類'),
+            tags: Array.isArray(p.tags) ? p.tags.map(String) : [],
+            body: String(p.body || ''),
+            favorite: Boolean(p.favorite),
+            createdAt: Number(p.createdAt || Date.now()),
+          }));
+          saveToStorage(prompts);
+          render();
+          showToast('JSONをインポートしました');
+        } catch (err) {
+          console.error(err);
+          showToast('インポートに失敗しました');
+        } finally {
+          e.target.value = '';
+        }
+      });
+
+      // 追加モーダル
+      const addModal = document.getElementById('addModal');
+      const openAdd = document.getElementById('openAdd');
+      const closeAdd = document.getElementById('closeAdd');
+      const resetAdd = document.getElementById('resetAdd');
+      const addTitle = document.getElementById('addTitle');
+      const addCategory = document.getElementById('addCategory');
+      const addTags = document.getElementById('addTags');
+      const addBody = document.getElementById('addBody');
+
+      openAdd.addEventListener('click', () => { addModal.showModal(); addTitle.focus(); });
+      closeAdd.addEventListener('click', () => addModal.close());
+      resetAdd.addEventListener('click', () => { addTitle.value = ''; addCategory.value = ''; addTags.value = ''; addBody.value = ''; addTitle.focus(); });
+
+      addModal.addEventListener('close', () => {
+        // フォームの既定動作によるclose時は何もしない
+      });
+
+      addModal.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = addTitle.value.trim();
+        const category = addCategory.value.trim() || '未分類';
+        const tags = addTags.value.split(',').map(s => s.trim()).filter(Boolean);
+        const body = addBody.value.trim();
+        if (!title || !body) { showToast('タイトルと本文は必須です'); return; }
+        const item = { id: cryptoRandomId(), title, category, tags, body, favorite: false, createdAt: Date.now() };
+        prompts.unshift(item);
+        saveToStorage(prompts);
+        addModal.close();
+        render();
+        addTitle.value = ''; addCategory.value = ''; addTags.value = ''; addBody.value = '';
+        showToast('追加しました');
+      });
+
+      // 初期描画
+      render();
+
+      // 不要になったモーダル関連ロジックを撤去
+      // 編集モーダル関連
+      const editModal = document.getElementById('editModal');
+      const closeEdit = document.getElementById('closeEdit');
+      const cancelEdit = document.getElementById('cancelEdit');
+      const saveEdit = document.getElementById('saveEdit');
+      const editTitle = document.getElementById('editTitle');
+      const editCategory = document.getElementById('editCategory');
+      const editTags = document.getElementById('editTags');
+      const editBody = document.getElementById('editBody');
+      let currentEdit = null;
+
+      closeEdit.addEventListener('click', () => editModal.close());
+      cancelEdit.addEventListener('click', () => editModal.close());
+      editModal.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!currentEdit) return editModal.close();
+        const title = editTitle.value.trim();
+        const category = editCategory.value.trim() || '未分類';
+        const tags = editTags.value.split(',').map(s => s.trim()).filter(Boolean);
+        const body = editBody.value.trim();
+        if (!title || !body) { showToast('タイトルと本文は必須です'); return; }
+        currentEdit.title = title;
+        currentEdit.category = category;
+        currentEdit.tags = tags;
+        currentEdit.body = body;
+        saveToStorage(prompts);
+        editModal.close();
+        render();
+        showToast('更新しました');
+      });
+    </script>
+  </body>
+</html>
+
+
