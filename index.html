@@ -159,7 +159,7 @@
       .search { display: flex; align-items: center; gap: 8px; min-width: 240px; }
       .search input { width: 100%; }
       .switch { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; white-space: nowrap; }
-      #category.control { min-width: 200px; }
+
       #sort.control { min-width: 180px; }
 
       .grid {
@@ -177,7 +177,8 @@
         box-shadow: var(--shadow);
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        justify-content: space-between;
+        min-height: 280px;
         transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
         user-select: none;
         -webkit-user-select: none;
@@ -191,25 +192,8 @@
         box-shadow: 0 20px 40px rgba(0,0,0,0.35);
       }
 
-      .card.dragging {
-        opacity: 0.7;
-        transform: rotate(2deg) scale(0.98);
-        z-index: 1000;
-        box-shadow: 0 20px 40px rgba(255,155,211,.5);
-        pointer-events: none;
-        transition: none;
-        border-color: rgba(255,155,211,.9);
-      }
-
-      .card.drag-over {
-        border-color: rgba(255,155,211,.9);
-        background: linear-gradient(180deg, rgba(255,155,211,.1), rgba(205,180,255,.05));
-        transform: scale(1.02);
-        box-shadow: 0 10px 25px rgba(255,155,211,.3);
-      }
-
       .card h3 {
-        margin: 0;
+        margin: 0 0 6px 0;
         font-size: 16px;
         display: flex;
         justify-content: space-between;
@@ -223,69 +207,19 @@
       .card h3:hover {
         background-color: rgba(255,255,255,0.05);
       }
-
-      .drag-handle {
-        font-size: 16px;
-        color: var(--muted);
-        cursor: grab;
-        opacity: 0.9;
-        transition: all 0.15s ease;
-        line-height: 1;
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-left: 12px;
-        touch-action: none;
-        user-select: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 32px;
-        height: 28px;
-        font-weight: bold;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.15);
-        position: relative;
-        z-index: 10;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-      }
-
-      /* タッチデバイスでの最適化 */
-      @media (hover: none) and (pointer: coarse) {
-        .drag-handle {
-          font-size: 16px;
-          padding: 4px 6px;
-          opacity: 0.9;
-        }
-      }
-
-      .drag-handle:hover {
-        opacity: 1;
-        background: rgba(255,155,211,0.2);
-        border-color: rgba(255,155,211,0.4);
-        color: rgba(255,155,211,0.9);
-        transform: scale(1.05);
-      }
-
-      .card.dragging .drag-handle {
-        cursor: grabbing;
-        background: rgba(255,155,211,0.3);
-        border-color: rgba(255,155,211,0.6);
-        color: rgba(255,155,211,1);
-      }
       .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
       .chip { background: linear-gradient(180deg, rgba(160,231,229,.16), rgba(205,180,255,.12)); border: 1px solid rgba(160,231,229,.35); padding: 3px 10px; border-radius: 999px; font-size: 11px; color: #e8f8ff; }
       .tags { display: flex; gap: 6px; flex-wrap: wrap; }
-      .body { color: #d7dbff; font-size: 13px; white-space: pre-wrap; overflow: hidden; max-height: 12em; mask-image: linear-gradient(180deg, #000 80%, transparent); }
+      .body { color: #d7dbff; font-size: 13px; white-space: pre-wrap; overflow: hidden; max-height: 12em; mask-image: linear-gradient(180deg, #000 80%, transparent); margin-top: 8px; }
       .actions {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-end;
         gap: 8px;
-        margin-top: 8px;
+        margin-top: auto;
         padding-top: 8px;
         border-top: 1px solid rgba(255,255,255,0.1);
+        position: relative;
       }
       .left-actions {
         display: flex;
@@ -301,7 +235,7 @@
       .icon-btn:hover { background: rgba(255,255,255,0.08); }
       .icon-btn[data-active="true"] { color: #ffd86b; border-color: rgba(255,216,107,.55); background: rgba(255,216,107,0.15); }
       .icon-btn.danger { color: var(--danger); border-color: #5a2b35; background: #1f1116; }
-      .copy-btn { margin-left: auto; width: 112px; text-align: center; }
+      .copy-btn { margin-left: auto; width: 112px; text-align: center; align-self: flex-end; }
       .inline-vars {
         display: grid;
         gap: 6px;
@@ -316,6 +250,7 @@
         border-radius: 8px;
         padding: 12px;
         margin-top: 8px; /* 空白を減らす */
+        margin-bottom: 4px;
       }
       .inline-vars .field {
         position: relative;
@@ -409,7 +344,7 @@
       <header>
         <div class="title">
           <h1>PromptBox</h1>
-          <span class="badge">用途別・ワンクリックコピー</span>
+          <span class="badge">よく使うプロンプトをワンクリックでコピー</span>
         </div>
         <div class="controls">
           <button id="openAdd" class="btn">＋ 新規追加</button>
@@ -423,13 +358,10 @@
         <div class="search">
           <input id="q" class="control" type="text" placeholder="検索（タイトル・本文・タグ）" />
         </div>
-        <select id="category" class="control">
-          <option value="">すべてのカテゴリ</option>
-        </select>
+
         <select id="sort" class="control">
           <option value="recent">並び順: 追加が新しい順</option>
           <option value="title">並び順: タイトル</option>
-          <option value="category">並び順: カテゴリ</option>
           <option value="favorite">並び順: お気に入り優先</option>
         </select>
         <label class="switch"><input id="onlyFav" type="checkbox" /> お気に入りのみ</label>
@@ -438,8 +370,7 @@
       <div id="grid" class="grid"></div>
 
       <div class="footer">
-        <span>ローカルに保存されます（localStorage）。エクスポートでバックアップ可能。</span><br>
-        <span style="font-size: 11px; color: var(--muted);">💡 タイトル右の⋮⋮をドラッグしてカードの順序を変更できます</span>
+        <span>ローカルに保存されます（localStorage）。エクスポートでバックアップ可能。</span>
       </div>
     </div>
 
@@ -455,11 +386,7 @@
               <label for="addTitle">タイトル</label>
               <input id="addTitle" class="control" type="text" placeholder="例: バグ修正の依頼テンプレ" required />
             </div>
-            <div class="field">
-              <label for="addCategory">カテゴリ</label>
-              <input id="addCategory" class="control" type="text" placeholder="例: バグ修正" list="categoryList" />
-              <datalist id="categoryList"></datalist>
-            </div>
+
           </div>
           <div class="field">
             <label for="addTags">タグ（カンマ区切り）</label>
@@ -489,11 +416,7 @@
               <label for="editTitle">タイトル</label>
               <input id="editTitle" class="control" type="text" required />
             </div>
-            <div class="field">
-              <label for="editCategory">カテゴリ</label>
-              <input id="editCategory" class="control" type="text" list="categoryListEdit" />
-              <datalist id="categoryListEdit"></datalist>
-            </div>
+
           </div>
           <div class="field">
             <label for="editTags">タグ（カンマ区切り）</label>
@@ -501,7 +424,7 @@
           </div>
           <div class="field">
             <label for="editBody">本文</label>
-            <textarea id="editBody" class="control" rows="10" required></textarea>
+            <textarea id="editBody" class="control" rows="24" required></textarea>
           </div>
         </div>
         <div class="modal-actions">
@@ -518,7 +441,7 @@
     <script>
       // ------------------------------
       // 型の目安
-      // Prompt = { id: string, title: string, category: string, tags: string[], body: string, favorite: boolean, createdAt: number }
+      // Prompt = { id: string, title: string, tags: string[], body: string, favorite: boolean, createdAt: number }
       // ------------------------------
 
       const STORAGE_KEY = "promptBox.prompts.v1";
@@ -529,7 +452,6 @@
       const defaultPrompts = [
         {
           title: "バグ報告テンプレ（変数）",
-          category: "バグ修正",
           tags: ["bug", "template", "vars"],
           body: `[バグID] {{issue_id}}
 [タイトル] {{title}}
@@ -546,7 +468,6 @@
         },
         {
           title: "PRレビュー依頼（変数）",
-          category: "コードレビュー",
           tags: ["review", "pr", "vars"],
           body: `PR: {{pr_url}}
 対象範囲: {{scope}}
@@ -555,7 +476,6 @@
         },
         {
           title: "リリースノート生成（変数）",
-          category: "ドキュメント",
           tags: ["release", "notes", "vars"],
           body: `バージョン: {{version}}
 日付: {{date|YYYY-MM-DD}}
@@ -566,7 +486,6 @@
         },
         {
           title: "汎用コーディング依頼",
-          category: "コーディング一般",
           tags: ["coding", "implementation"],
           body: `次の仕様を満たすコードを実装してください。
 要件:
@@ -581,7 +500,6 @@
         },
         {
           title: "バグ修正テンプレ",
-          category: "バグ修正",
           tags: ["bugfix", "debug"],
           body: `次の不具合を原因特定し、修正案を提示してください。
 症状:
@@ -597,7 +515,6 @@
         },
         {
           title: "安全なリファクタリング計画",
-          category: "リファクタリング",
           tags: ["refactor", "design"],
           body: `このコードを読みやすさと拡張性を高めるためにリファクタリングしてください。
 条件:
@@ -612,7 +529,6 @@
         },
         {
           title: "READMEドラフト生成",
-          category: "ドキュメント",
           tags: ["docs", "readme"],
           body: `プロジェクトのREADMEの草案を作成してください。
 含める項目:
@@ -626,7 +542,6 @@
         },
         {
           title: "ユニットテスト生成",
-          category: "テスト",
           tags: ["test", "unit"],
           body: `対象コードの単体テストを作成してください。
 前提:
@@ -639,7 +554,6 @@
         },
         {
           title: "コミットメッセージ整形（Conventional Commits）",
-          category: "Git/コミット",
           tags: ["git", "commit"],
           body: `変更内容をConventional Commitsの形式で要約してください。
 入力: 変更点の箇条書き
@@ -648,7 +562,6 @@
         },
         {
           title: "コードレビュー依頼テンプレ",
-          category: "コードレビュー",
           tags: ["review", "pr"],
           body: `この差分のレビュー観点を提案してください。
 前提: 目的/背景/方針/制約
@@ -657,7 +570,6 @@
         },
         {
           title: "ユーザーストーリーと受け入れ基準",
-          category: "プロダクト仕様",
           tags: ["spec", "ux"],
           body: `要求からユーザーストーリーと受け入れ基準を作成してください。
 フォーマット:
@@ -666,7 +578,6 @@ As a [ユーザー], I want [価値], so that [目的].
         },
         {
           title: "技術文書の要約と平易化",
-          category: "翻訳/要約",
           tags: ["summary", "simplify"],
           body: `以下の技術文書を、非エンジニアにも伝わるように要約してください。
 条件:
@@ -676,7 +587,6 @@ As a [ユーザー], I want [価値], so that [目的].
         },
         {
           title: "SQL最適化アドバイス",
-          category: "データ/SQL",
           tags: ["sql", "performance"],
           body: `以下のSQLを性能面からレビューし、最適化案を提示してください。
 出力:
@@ -687,7 +597,6 @@ As a [ユーザー], I want [価値], so that [目的].
         },
         {
           title: "正規表現作成支援",
-          category: "正規表現",
           tags: ["regex"],
           body: `要件を満たす正規表現を設計し、テストケースを提示してください。
 要件:
@@ -697,7 +606,6 @@ As a [ユーザー], I want [価値], so that [目的].
         },
         {
           title: "プロンプト改善",
-          category: "プロンプト",
           tags: ["prompt", "improve"],
           body: `以下のプロンプトを、曖昧さを減らし再現性を高める形に書き直してください。
 出力:
@@ -718,16 +626,7 @@ As a [ユーザー], I want [価値], so that [目的].
         return 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
       }
 
-      // ドラッグ操作のデバッグ用関数
-      function logDragEvent(eventType, details = {}) {
-        console.log(`[ドラッグデバッグ] ${eventType}:`, {
-          timestamp: new Date().toISOString(),
-          ...details
-        });
-      }
 
-      // ドラッグデータを安全に保持するためのグローバル変数
-      let currentDragData = null;
 
       function debounce(func, wait) {
         let timeout;
@@ -859,7 +758,6 @@ As a [ユーザー], I want [価値], so that [目的].
 
       const state = {
         query: '',
-        category: '',
         onlyFavorite: false,
         sort: 'recent',
       };
@@ -868,27 +766,11 @@ As a [ユーザー], I want [価値], so that [目的].
       // 描画
       // ------------------------------
       const grid = document.getElementById('grid');
-      const categorySelect = document.getElementById('category');
       const sortSelect = document.getElementById('sort');
       const onlyFavInput = document.getElementById('onlyFav');
       const qInput = document.getElementById('q');
 
-      function renderCategoryOptions() {
-        const categories = Array.from(new Set(prompts.map(p => p.category))).sort((a, b) => a.localeCompare(b, 'ja'));
-        const list = document.getElementById('categoryList');
-        const listEdit = document.getElementById('categoryListEdit');
-        list.innerHTML = '';
-        if (listEdit) listEdit.innerHTML = '';
-        categorySelect.innerHTML = '<option value="">すべてのカテゴリ</option>';
-        categories.forEach(c => {
-          const opt = document.createElement('option'); opt.value = c; opt.textContent = c; categorySelect.appendChild(opt);
-          const dataOpt = document.createElement('option'); dataOpt.value = c; list.appendChild(dataOpt);
-          if (listEdit) {
-            const dataOpt2 = document.createElement('option'); dataOpt2.value = c; listEdit.appendChild(dataOpt2);
-          }
-        });
-        if (state.category && !categories.includes(state.category)) state.category = '';
-      }
+
 
       function normalize(text) {
         return (text || '').toLowerCase();
@@ -897,22 +779,17 @@ As a [ユーザー], I want [価値], so that [目的].
       function filterAndSort(items) {
         const q = normalize(state.query);
         let result = items.filter(p => {
-          if (state.category && p.category !== state.category) return false;
           if (state.onlyFavorite && !p.favorite) return false;
           if (!q) return true;
           const inTitle = normalize(p.title).includes(q);
           const inBody = normalize(p.body).includes(q);
           const inTags = (p.tags || []).some(t => normalize(t).includes(q));
-          const inCategory = normalize(p.category).includes(q);
-          return inTitle || inBody || inTags || inCategory;
+          return inTitle || inBody || inTags;
         });
 
         switch (state.sort) {
           case 'title':
             result.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
-            break;
-          case 'category':
-            result.sort((a, b) => a.category.localeCompare(b.category, 'ja') || a.title.localeCompare(b.title, 'ja'));
             break;
           case 'favorite':
             result.sort((a, b) => Number(b.favorite) - Number(a.favorite) || b.createdAt - a.createdAt);
@@ -929,139 +806,15 @@ As a [ユーザー], I want [価値], so that [目的].
         card.className = 'card';
         const title = document.createElement('h3');
         title.textContent = p.title;
-        title.style.cursor = 'grab';
         title.style.userSelect = 'none'; // テキスト選択を防止
 
-        // ドラッグハンドルを追加
-        const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-handle';
-        dragHandle.innerHTML = '⋮⋮';
-        dragHandle.title = 'ドラッグして並べ替え';
-        dragHandle.draggable = true;
-        title.appendChild(dragHandle);
-
         card.dataset.id = p.id;
-        card.draggable = true; // カード全体をドラッグ可能に
-
-        // ドラッグハンドルからもドラッグ可能
-        dragHandle.draggable = true;
-
-        // ドラッグハンドルのマウスダウンを確実にキャプチャ
-        dragHandle.addEventListener('mousedown', (e) => {
-          if (e.button === 0) { // 左クリックのみ
-            logDragEvent('ドラッグハンドルmousedown', { cardId: p.id, button: e.button });
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        });
-        // ドラッグハンドルからのドラッグ開始
-        dragHandle.addEventListener('dragstart', (e) => {
-          // 左クリックのみ許可
-          if (e.button !== 0) {
-            logDragEvent('ハンドルドラッグ拒否', { button: e.button, reason: '左クリック以外' });
-            e.preventDefault();
-            return;
-          }
-
-          logDragEvent('ハンドルドラッグ開始', { cardId: p.id, button: e.button });
-
-          // 重要な修正: データを複数の方法で保存
-          e.dataTransfer.clearData();
-
-          // 複数のデータ形式で保存（ブラウザ互換性のため）
-          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
-          e.dataTransfer.setData('text/plain', p.id);
-          e.dataTransfer.setData('application/json', dragData);
-          e.dataTransfer.effectAllowed = 'move';
-
-          // データが正しく設定されたことを確認
-          logDragEvent('データ設定確認', {
-            cardId: p.id,
-            plainText: e.dataTransfer.getData('text/plain'),
-            jsonData: e.dataTransfer.getData('application/json'),
-            types: Array.from(e.dataTransfer.types)
-          });
-
-          // グローバル変数にも保存（バックアップ）
-          currentDragData = p.id;
-
-          card.classList.add('dragging');
-          card.dataset.dragging = 'handle';
-
-          // イベント伝播を完全に停止（dataTransfer操作後）
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-        });
-
-        dragHandle.addEventListener('dragend', () => {
-          card.classList.remove('dragging');
-          delete card.dataset.dragging;
-        });
-
-        // タイトル全体もドラッグ可能に
-        title.draggable = true;
-        title.addEventListener('dragstart', (e) => {
-          // ドラッグハンドルからのイベントのみ許可
-          if (!e.target.closest('.drag-handle')) {
-            logDragEvent('タイトルドラッグ拒否', {
-              reason: 'ドラッグハンドル以外からのドラッグ',
-              target: e.target.tagName,
-              cardId: p.id
-            });
-            e.preventDefault();
-            return;
-          }
-
-          // 左クリックのみ許可
-          if (e.button !== 0) {
-            logDragEvent('タイトルドラッグ拒否', { button: e.button, reason: '左クリック以外' });
-            e.preventDefault();
-            return;
-          }
-
-          logDragEvent('タイトルドラッグ開始', { cardId: p.id, button: e.button });
-
-          // 重要な修正: データを複数の方法で保存
-          e.dataTransfer.clearData();
-
-          // 複数のデータ形式で保存（ブラウザ互換性のため）
-          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
-          e.dataTransfer.setData('text/plain', p.id);
-          e.dataTransfer.setData('application/json', dragData);
-          e.dataTransfer.effectAllowed = 'move';
-
-          // データが正しく設定されたことを確認
-          logDragEvent('タイトルデータ設定確認', {
-            cardId: p.id,
-            plainText: e.dataTransfer.getData('text/plain'),
-            jsonData: e.dataTransfer.getData('application/json'),
-            types: Array.from(e.dataTransfer.types)
-          });
-
-          // グローバル変数にも保存（バックアップ）
-          currentDragData = p.id;
-
-          card.classList.add('dragging');
-          card.dataset.dragging = 'title';
-
-          // イベント伝播を完全に停止（dataTransfer操作後）
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-        });
-
-        title.addEventListener('dragend', () => {
-          card.classList.remove('dragging');
-          delete card.dataset.dragging;
-        });
 
         const meta = document.createElement('div');
         meta.className = 'meta';
-        const cat = document.createElement('span'); cat.className = 'chip'; cat.textContent = p.category || '未分類';
         const tags = document.createElement('div'); tags.className = 'tags';
         (p.tags || []).forEach(t => { const s = document.createElement('span'); s.className = 'chip'; s.textContent = `#${t}`; tags.appendChild(s); });
-        meta.appendChild(cat); meta.appendChild(tags);
+        meta.appendChild(tags);
 
         // インライン変数入力
         const varsMap = extractVariables(p.body);
@@ -1226,103 +979,7 @@ As a [ユーザー], I want [価値], so that [目的].
         if (varsContainer) card.appendChild(varsContainer);
         card.appendChild(actions);
 
-        // カード全体のマウスダウンを確実にキャプチャ（ドラッグハンドル除く）
-        card.addEventListener('mousedown', (e) => {
-          // ドラッグハンドルからのイベントは処理しない
-          if (e.target.closest('.drag-handle') || e.target.closest('h3')) {
-            return;
-          }
 
-          // クリック可能要素からのドラッグは拒否
-          if (e.target.closest('button, a, .icon-btn, .btn')) {
-            logDragEvent('カードクリック要素mousedown', {
-              target: e.target.tagName,
-              cardId: p.id
-            });
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-          }
-
-          if (e.button === 0) {
-            logDragEvent('カードmousedown', { cardId: p.id, button: e.button });
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        });
-
-        // カード全体でもドラッグ可能に（ドラッグハンドル以外の場合）
-        card.addEventListener('dragstart', (e) => {
-          // 左クリックのみ許可
-          if (e.button !== 0) {
-            logDragEvent('カードドラッグ拒否', { button: e.button, reason: '左クリック以外' });
-            e.preventDefault();
-            return;
-          }
-
-          // 既にドラッグ中の場合は処理しない
-          if (card.dataset.dragging) {
-            logDragEvent('カードドラッグスキップ', { reason: '既にドラッグ中', cardId: p.id });
-            return;
-          }
-
-          // ドラッグハンドルやタイトルからのイベントの場合は処理しない
-          if (e.target === dragHandle || e.target === title || e.target.closest('.drag-handle') || e.target.closest('h3')) {
-            logDragEvent('カードドラッグスキップ', {
-              reason: 'ハンドル/タイトルからのイベント',
-              target: e.target.tagName,
-              cardId: p.id
-            });
-            return;
-          }
-
-          // カード内のクリック可能な要素（ボタン、リンクなど）からのドラッグは拒否
-          if (e.target.closest('button, a, .icon-btn, .btn')) {
-            logDragEvent('カードドラッグ拒否', {
-              reason: 'クリック可能要素からのドラッグ',
-              target: e.target.tagName,
-              cardId: p.id
-            });
-            e.preventDefault();
-            return;
-          }
-
-          logDragEvent('カードドラッグ開始', { cardId: p.id, button: e.button });
-
-          // 重要な修正: データを複数の方法で保存
-          e.dataTransfer.clearData();
-
-          // 複数のデータ形式で保存（ブラウザ互換性のため）
-          const dragData = JSON.stringify({ id: p.id, type: 'card', timestamp: Date.now() });
-          e.dataTransfer.setData('text/plain', p.id);
-          e.dataTransfer.setData('application/json', dragData);
-          e.dataTransfer.effectAllowed = 'move';
-
-          // データが正しく設定されたことを確認
-          logDragEvent('カードデータ設定確認', {
-            cardId: p.id,
-            plainText: e.dataTransfer.getData('text/plain'),
-            jsonData: e.dataTransfer.getData('application/json'),
-            types: Array.from(e.dataTransfer.types)
-          });
-
-          // グローバル変数にも保存（バックアップ）
-          currentDragData = p.id;
-
-          card.classList.add('dragging');
-          card.dataset.dragging = 'card';
-
-          // イベント伝播を完全に停止（dataTransfer操作後）
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-        });
-
-        // ドラッグ終了時の処理を確実に実行
-        card.addEventListener('dragend', () => {
-          card.classList.remove('dragging');
-          delete card.dataset.dragging;
-        });
 
         return card;
       }
@@ -1330,7 +987,6 @@ As a [ユーザー], I want [価値], so that [目的].
       function openEditModal(p) {
         currentEdit = p;
         editTitle.value = p.title;
-        editCategory.value = p.category || '';
         editTags.value = (p.tags || []).join(', ');
         editBody.value = p.body;
         editModal.showModal();
@@ -1342,7 +998,6 @@ As a [ユーザー], I want [価値], so that [目的].
       let hasMoreItems = false;
 
       function render() {
-        renderCategoryOptions();
         const items = filterAndSort(prompts);
         grid.innerHTML = '';
         currentPage = 0;
@@ -1374,316 +1029,17 @@ As a [ユーザー], I want [価値], so that [目的].
 
         grid.appendChild(fragment);
 
-        // グリッドコンテナにドロップイベントハンドラーを追加
-        setupGridDragAndDrop();
 
-        // 追加のデバッグイベントリスナー
-        document.addEventListener('dragenter', (e) => {
-          logDragEvent('ドキュメントdragenter', {
-            target: e.target.tagName,
-            currentTarget: e.currentTarget.tagName,
-            hasDataTransfer: !!e.dataTransfer,
-            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
-            dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null'
-          });
-        });
 
-        document.addEventListener('dragleave', (e) => {
-          if (!document.contains(e.relatedTarget)) {
-            logDragEvent('ドキュメントdragleave', {
-              target: e.target.tagName,
-              relatedTarget: e.relatedTarget?.tagName || 'null',
-              hasDataTransfer: !!e.dataTransfer,
-              dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
-              dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null'
-            });
-          }
-        });
-
-        // dataTransferの変更を監視するイベントリスナー
-        document.addEventListener('drag', (e) => {
-          if (e.dataTransfer) {
-            const plainData = e.dataTransfer.getData('text/plain');
-            let jsonData = null;
-            try {
-              jsonData = e.dataTransfer.getData('application/json');
-            } catch (error) {
-              // JSONデータがない場合は無視
-            }
-
-            logDragEvent('ドキュメントdrag', {
-              target: e.target.tagName,
-              plainData: plainData || 'empty',
-              jsonData: jsonData ? 'present' : 'empty',
-              dataTypes: Array.from(e.dataTransfer.types),
-              effectAllowed: e.dataTransfer.effectAllowed,
-              hasBackupData: !!currentDragData
-            });
-
-            // ドラッグ中にデータが失われた場合の警告
-            if (!plainData && !jsonData && currentDragData) {
-              logDragEvent('ドラッグ中データ損失検知', {
-                backupData: currentDragData,
-                dataTypes: Array.from(e.dataTransfer.types)
-              });
-            }
-          }
-        });
-
-        // ドラッグ開始から終了までの時間を監視
-        let dragStartTime = null;
-        document.addEventListener('dragstart', () => {
-          dragStartTime = Date.now();
-          logDragEvent('ドラッグ開始時間記録', { startTime: dragStartTime });
-        });
-
-        document.addEventListener('dragend', () => {
-          if (dragStartTime) {
-            const dragDuration = Date.now() - dragStartTime;
-            logDragEvent('ドラッグ持続時間', { duration: dragDuration });
-            dragStartTime = null;
-          }
-        });
-      }
-
-      function setupGridDragAndDrop() {
-        grid.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-
-          // デバッグ: ドラッグ中のデータを確認（複数の形式を試す）
-          let draggedId = e.dataTransfer.getData('text/plain');
-
-          // text/plainが空の場合はapplication/jsonを試す
-          if (!draggedId) {
-            try {
-              const jsonData = e.dataTransfer.getData('application/json');
-              if (jsonData) {
-                const parsed = JSON.parse(jsonData);
-                draggedId = parsed.id;
-                logDragEvent('グリッドdragover JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
-              }
-            } catch (error) {
-              logDragEvent('グリッドdragover JSONパースエラー', { error: error.message });
-            }
-          }
-
-          // それでも空の場合はバックアップを使用
-          if (!draggedId && currentDragData) {
-            draggedId = currentDragData;
-            logDragEvent('グリッドdragover バックアップデータ使用', { backupData: draggedId });
-          }
-
-          if (!draggedId) {
-            logDragEvent('グリッドdragover失敗', {
-              reason: 'ドラッグデータが空',
-              dataTypes: Array.from(e.dataTransfer.types),
-              hasBackupData: !!currentDragData
-            });
-            return;
-          }
-
-          logDragEvent('グリッドdragover', {
-            draggedId,
-            mouseY: e.clientY,
-            target: e.target.tagName
-          });
-
-          // ドロップ位置の視覚フィードバック
-          document.querySelectorAll('.card.drag-over').forEach(card => {
-            card.classList.remove('drag-over');
-          });
-
-          const afterElement = getDragAfterElement(grid, e.clientY);
-          if (afterElement) {
-            afterElement.classList.add('drag-over');
-            logDragEvent('ドロップ位置ハイライト', {
-              afterElementId: afterElement.dataset.id
-            });
-          }
-        });
-
-        grid.addEventListener('drop', (e) => {
-          e.preventDefault();
-
-          logDragEvent('グリッドドロップ開始', {
-            hasDataTransfer: !!e.dataTransfer,
-            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
-            mouseY: e.clientY
-          });
-
-          if (!e.dataTransfer) {
-            logDragEvent('ドロップ失敗', { reason: 'dataTransferが存在しません' });
-            cleanupDragState();
-            return;
-          }
-
-          let draggedId = e.dataTransfer.getData('text/plain');
-
-          // text/plainが空の場合はapplication/jsonを試す
-          if (!draggedId) {
-            try {
-              const jsonData = e.dataTransfer.getData('application/json');
-              if (jsonData) {
-                const parsed = JSON.parse(jsonData);
-                draggedId = parsed.id;
-                logDragEvent('JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
-              }
-            } catch (error) {
-              logDragEvent('JSONパースエラー', { error: error.message });
-            }
-          }
-
-          // dataTransferのデータが空の場合はグローバル変数から取得
-          if (!draggedId && currentDragData) {
-            logDragEvent('バックアップデータ使用', { backupData: currentDragData });
-            draggedId = currentDragData;
-          }
-
-          if (!draggedId) {
-            logDragEvent('ドロップ失敗', {
-              reason: 'ドラッグデータが空',
-              dataTypes: Array.from(e.dataTransfer.types),
-              hasBackupData: !!currentDragData
-            });
-            cleanupDragState();
-            return;
-          }
-
-          const draggingCard = document.querySelector(`[data-id="${draggedId}"]`);
-          if (!draggingCard) {
-            logDragEvent('ドロップ失敗', { draggedId, reason: 'ドラッグ中のカードが見つかりません' });
-            cleanupDragState();
-            return;
-          }
-
-          // ドロップ位置を取得
-          const afterElement = getDragAfterElement(grid, e.clientY);
-
-          // ドラッグ中のカードを適切な位置に移動
-          try {
-            if (afterElement && afterElement !== draggingCard) {
-              grid.insertBefore(draggingCard, afterElement);
-            } else if (!afterElement) {
-              grid.appendChild(draggingCard);
-            }
-
-            // 順序を更新
-            updatePromptOrder();
-            showToast('順序を保存しました');
-            logDragEvent('ドロップ成功', { draggedId, afterElementId: afterElement?.dataset.id || 'end' });
-          } catch (error) {
-            logDragEvent('ドロップエラー', { draggedId, error: error.message });
-            showToast('順序の保存に失敗しました');
-          } finally {
-            // グローバル変数をクリア
-            currentDragData = null;
-            // 視覚効果をリセット（確実に実行）
-            cleanupDragState();
-          }
-        });
-
-        // ドラッグがグリッド外に出た場合の処理
-        grid.addEventListener('dragleave', (e) => {
-          if (!grid.contains(e.relatedTarget)) {
-            logDragEvent('グリッドdragleave', {
-              reason: 'グリッド外に出た',
-              target: e.target.tagName,
-              relatedTarget: e.relatedTarget?.tagName || 'null'
-            });
-            document.querySelectorAll('.card.drag-over').forEach(card => {
-              card.classList.remove('drag-over');
-            });
-          }
-        });
-
-        // 安全策：ドキュメント全体でドラッグ終了を監視
-        document.addEventListener('dragend', (e) => {
-          logDragEvent('ドキュメントdragend', {
-            hasDataTransfer: !!e.dataTransfer,
-            dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
-            dataContent: e.dataTransfer ? e.dataTransfer.getData('text/plain') : 'null',
-            target: e.target.tagName,
-            type: e.type
-          });
-
-          // ドラッグが完了またはキャンセルされた場合のクリーンアップ
-          cleanupDragState();
-
-          // ドラッグデータが空の場合（キャンセルされた場合）は順序を保存しない
-          let draggedId = e.dataTransfer ? e.dataTransfer.getData('text/plain') : null;
-
-          // text/plainが空の場合はapplication/jsonを試す
-          if (!draggedId && e.dataTransfer) {
-            try {
-              const jsonData = e.dataTransfer.getData('application/json');
-              if (jsonData) {
-                const parsed = JSON.parse(jsonData);
-                draggedId = parsed.id;
-                logDragEvent('dragend JSONデータ使用', { parsedData: parsed, extractedId: draggedId });
-              }
-            } catch (error) {
-              logDragEvent('dragend JSONパースエラー', { error: error.message });
-            }
-          }
-
-          // dataTransferのデータが空の場合はグローバル変数から取得
-          if (!draggedId && currentDragData) {
-            logDragEvent('dragendバックアップデータ使用', { backupData: currentDragData });
-            draggedId = currentDragData;
-          }
-
-          if (!draggedId) {
-            logDragEvent('ドラッグキャンセル', {
-              reason: 'ドラッグデータが空',
-              hasDataTransfer: !!e.dataTransfer,
-              dataTypes: e.dataTransfer ? Array.from(e.dataTransfer.types) : [],
-              hasBackupData: !!currentDragData
-            });
-            currentDragData = null; // バックアップデータもクリア
-            return;
-          }
-
-          logDragEvent('ドラッグ完了', { draggedId });
-          currentDragData = null; // 完了後はクリア
-        });
-      }
-
-      // ドラッグ状態の一元化クリーンアップ関数
-      function cleanupDragState() {
-        // すべてのdraggingクラス、drag-overクラス、dragging属性を削除
-        document.querySelectorAll('.card.dragging, .card.drag-over').forEach(card => {
-          card.classList.remove('dragging', 'drag-over');
-          delete card.dataset.dragging;
-        });
-      }
-
-      function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.card:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - box.top - box.height / 2;
-
-          // マウスが要素の上半分にある場合のみ考慮
-          if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-          } else {
-            return closest;
-          }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
       }
 
 
 
-      function updatePromptOrder() {
-        const cards = [...grid.querySelectorAll('.card')];
-        const newOrder = cards.map(card => card.dataset.id);
-        const orderedPrompts = newOrder.map(id => prompts.find(p => p.id === id)).filter(Boolean);
 
-        prompts = orderedPrompts;
-        saveToStorage(prompts);
-      }
+
+
+
+
 
       function loadMoreItems(allItems) {
         currentPage++;
@@ -1707,8 +1063,7 @@ As a [ユーザー], I want [価値], so that [目的].
 
         grid.appendChild(fragment);
 
-        // 新しいカードにもドラッグ＆ドロップ機能を適用
-        setupGridDragAndDrop();
+
       }
 
       // ------------------------------
@@ -1720,7 +1075,6 @@ As a [ユーザー], I want [価値], so that [目的].
       }, 300);
 
       qInput.addEventListener('input', debouncedSearch);
-      categorySelect.addEventListener('change', (e) => { state.category = e.target.value; render(); });
       onlyFavInput.addEventListener('change', (e) => { state.onlyFavorite = e.target.checked; render(); });
       sortSelect.addEventListener('change', (e) => { state.sort = e.target.value; render(); });
 
@@ -1749,7 +1103,7 @@ As a [ユーザー], I want [価値], so that [目的].
           prompts = json.map(p => ({
             id: p.id || cryptoRandomId(),
             title: String(p.title || '無題'),
-            category: String(p.category || '未分類'),
+
             tags: Array.isArray(p.tags) ? p.tags.map(String) : [],
             body: String(p.body || ''),
             favorite: Boolean(p.favorite),
@@ -1772,13 +1126,12 @@ As a [ユーザー], I want [価値], so that [目的].
       const closeAdd = document.getElementById('closeAdd');
       const resetAdd = document.getElementById('resetAdd');
       const addTitle = document.getElementById('addTitle');
-      const addCategory = document.getElementById('addCategory');
       const addTags = document.getElementById('addTags');
       const addBody = document.getElementById('addBody');
 
       openAdd.addEventListener('click', () => { addModal.showModal(); addTitle.focus(); });
       closeAdd.addEventListener('click', () => addModal.close());
-      resetAdd.addEventListener('click', () => { addTitle.value = ''; addCategory.value = ''; addTags.value = ''; addBody.value = ''; addTitle.focus(); });
+      resetAdd.addEventListener('click', () => { addTitle.value = ''; addTags.value = ''; addBody.value = ''; addTitle.focus(); });
 
       addModal.addEventListener('close', () => {
         // フォームの既定動作によるclose時は何もしない
@@ -1787,16 +1140,15 @@ As a [ユーザー], I want [価値], so that [目的].
       addModal.querySelector('form').addEventListener('submit', (e) => {
         e.preventDefault();
         const title = addTitle.value.trim();
-        const category = addCategory.value.trim() || '未分類';
         const tags = addTags.value.split(',').map(s => s.trim()).filter(Boolean);
         const body = addBody.value.trim();
         if (!title || !body) { showToast('タイトルと本文は必須です'); return; }
-        const item = { id: cryptoRandomId(), title, category, tags, body, favorite: false, createdAt: Date.now() };
+        const item = { id: cryptoRandomId(), title, tags, body, favorite: false, createdAt: Date.now() };
         prompts.unshift(item);
         saveToStorage(prompts);
         addModal.close();
         render();
-        addTitle.value = ''; addCategory.value = ''; addTags.value = ''; addBody.value = '';
+        addTitle.value = ''; addTags.value = ''; addBody.value = '';
         showToast('追加しました');
       });
 
@@ -1810,7 +1162,6 @@ As a [ユーザー], I want [価値], so that [目的].
       const cancelEdit = document.getElementById('cancelEdit');
       const saveEdit = document.getElementById('saveEdit');
       const editTitle = document.getElementById('editTitle');
-      const editCategory = document.getElementById('editCategory');
       const editTags = document.getElementById('editTags');
       const editBody = document.getElementById('editBody');
       let currentEdit = null;
@@ -1821,12 +1172,10 @@ As a [ユーザー], I want [価値], so that [目的].
         e.preventDefault();
         if (!currentEdit) return editModal.close();
         const title = editTitle.value.trim();
-        const category = editCategory.value.trim() || '未分類';
         const tags = editTags.value.split(',').map(s => s.trim()).filter(Boolean);
         const body = editBody.value.trim();
         if (!title || !body) { showToast('タイトルと本文は必須です'); return; }
         currentEdit.title = title;
-        currentEdit.category = category;
         currentEdit.tags = tags;
         currentEdit.body = body;
         saveToStorage(prompts);
