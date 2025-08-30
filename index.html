@@ -1098,23 +1098,32 @@ As a [ユーザー], I want [価値], so that [目的].
         try {
           const text = await file.text();
           const json = JSON.parse(text);
-          if (!Array.isArray(json)) throw new Error('invalid');
-          // 最低限の正規化
+          if (!Array.isArray(json)) throw new Error('JSONは配列ではありません');
+          const isValid = json.every(p =>
+            p &&
+            typeof p.title === 'string' &&
+            Array.isArray(p.tags) && p.tags.every(t => typeof t === 'string') &&
+            typeof p.body === 'string' &&
+            typeof p.favorite === 'boolean' &&
+            typeof p.createdAt === 'number' &&
+            (p.id === undefined || typeof p.id === 'string')
+          );
+          if (!isValid) throw new Error('スキーマが不正です');
           prompts = json.map(p => ({
             id: p.id || cryptoRandomId(),
-            title: String(p.title || '無題'),
-
-            tags: Array.isArray(p.tags) ? p.tags.map(String) : [],
-            body: String(p.body || ''),
-            favorite: Boolean(p.favorite),
-            createdAt: Number(p.createdAt || Date.now()),
+            title: p.title,
+            
+            tags: p.tags,
+            body: p.body,
+            favorite: p.favorite,
+            createdAt: p.createdAt,
           }));
           saveToStorage(prompts);
           render();
           showToast('JSONをインポートしました');
         } catch (err) {
-          console.error(err);
-          showToast('インポートに失敗しました');
+          console.error('Import error:', err);
+          showToast(`インポートに失敗しました: ${err.message}`);
         } finally {
           e.target.value = '';
         }
