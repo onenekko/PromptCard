@@ -464,169 +464,91 @@
        */
       const defaultPrompts = [
         {
-          title: "バグ報告テンプレ（変数）",
-          tags: ["bug", "template", "vars"],
-          body: `[バグID] {{issue_id}}
-[タイトル] {{title}}
-[再現手順]
-{{steps}}
-
-[期待結果]
-{{expected}}
-
-[実際の結果]
-{{actual}}
-
-[優先度] {{priority|normal}}`,
+          "id": "305b1ce5-a267-4e12-8e6a-1567e691fa2d",
+          "title": "[Codex] アセット・データ系Issueの抽出",
+          "category": "未分類",
+          "tags": [
+            "Codex",
+            "リファクタリング"
+          ],
+          "body": "リポジトリ全体を走査し、下記の「アセット/データにおい」を検出してください。\n- アニメ/Audio/Addressables の重複参照、直参照による肥大\n- ローカライズやセーブデータのバージョニング未実装\n\n### 出力フォーマット（必須・固定）\nTitle: [Refactor] {対象}:{短い問題名}\nLabels: {分類ラベル}\n\nDescription\n\nWhat\n- 問題のあるコード箇所（クラス名/メソッド名/行番号と短い説明）\n\nWhy\n- その問題が起きる根本原因\n\nImpact\n- ユーザーやフレームレートへの影響を一文で\n\n### 制約\n- **必ずこの形式で出力すること**\n- **コード変更提案は禁止**\n- **Test ideas, Suggested next steps 等は書かない**\n- **問題を端的に指摘し、理由と影響を簡潔に説明する**\n- 最大で重要な指摘3件まで\n- 除外: Assets/ThirdParty, Assets/Plugins, Assets/External, Packages, Library, Temp, obj, *.generated.cs",
+          "favorite": false,
+          "createdAt": 1756364596848
         },
         {
-          title: "PRレビュー依頼（変数）",
-          tags: ["review", "pr", "vars"],
-          body: `PR: {{pr_url}}
-対象範囲: {{scope}}
-重点確認: {{focus|読みやすさ, テスト, 影響範囲}}
-補足: {{notes|なし}}`,
+          "id": "8cea327b-7d3a-4938-9ef6-cdb268fd67c4",
+          "title": "[Codex] 信頼性・フレーム依存Issueの抽出",
+          "category": "未分類",
+          "tags": [
+            "Codex",
+            "リファクタリング"
+          ],
+          "body": "リポジトリ全体を走査し、下記の「信頼性におい」を検出してください。\n- Time.deltaTime未使用 / DateTime.Now依存\n- Coroutineのキャンセル漏れ、StopAllCoroutines乱用\n- OnDisable/OnDestroyでの購読解除漏れ（イベント/UniTask/Async）\n\n### 出力フォーマット（必須・固定）\nTitle: [Refactor] {対象}:{短い問題名}\nLabels: {分類ラベル}\n\nDescription\n\nWhat\n- 問題のあるコード箇所（クラス名/メソッド名/行番号と短い説明）\n\nWhy\n- その問題が起きる根本原因\n\nImpact\n- ユーザーやフレームレートへの影響を一文で\n\n### 制約\n- **必ずこの形式で出力すること**\n- **コード変更提案は禁止**\n- **Test ideas, Suggested next steps 等は書かない**\n- **問題を端的に指摘し、理由と影響を簡潔に説明する**\n- 最大で重要な指摘3件まで\n- 除外: Assets/ThirdParty, Assets/Plugins, Assets/External, Packages, Library, Temp, obj, *.generated.cs",
+          "favorite": false,
+          "createdAt": 1756364548486
         },
         {
-          title: "リリースノート生成（変数）",
-          tags: ["release", "notes", "vars"],
-          body: `バージョン: {{version}}
-日付: {{date|YYYY-MM-DD}}
-変更点:
-{{changes}}
-
-既知の問題: {{known_issues|なし}}`,
+          "id": "2883a7fd-34a9-46cc-b086-a34da0de9e51",
+          "title": "[Codex] 設計・保守Issueの抽出",
+          "category": "未分類",
+          "tags": [
+            "Codex",
+            "リファクタリング"
+          ],
+          "body": "リポジトリ全体を走査し、下記の「設計・保守性におい」を検出してください。\n- God MonoBehaviour（責務過多）\n- 魔法値、散在するフラグ、static横断、Service Locator依存\n- null前提の脆いフロー（TryGetComponent未使用）\n- シーン階層やオブジェクト名への非決定的依存\n- テスト不能な密結合（new直書き、インタフェース未使用、Singleton乱用）\n\n### 出力フォーマット（必須・固定）\nTitle: [Refactor] {対象}:{短い問題名}\nLabels: {分類ラベル}\n\nDescription\n\nWhat\n- 問題のあるコード箇所（クラス名/メソッド名/行番号と短い説明）\n\nWhy\n- その問題が起きる根本原因\n\nImpact\n- ユーザーやフレームレートへの影響を一文で\n\n### 制約\n- **必ずこの形式で出力すること**\n- **コード変更提案は禁止**\n- **Test ideas, Suggested next steps 等は書かない**\n- **問題を端的に指摘し、理由と影響を簡潔に説明する**\n- 最大で重要な指摘3件まで\n- 除外: Assets/ThirdParty, Assets/Plugins, Assets/External, Packages, Library, Temp, obj, *.generated.cs",
+          "favorite": false,
+          "createdAt": 1756364516958
         },
         {
-          title: "汎用コーディング依頼",
-          tags: ["coding", "implementation"],
-          body: `次の仕様を満たすコードを実装してください。
-要件:
-- 機能:
-- 入力/出力:
-- 境界条件:
-品質:
-- 可読性を重視し、意味のある命名を徹底する
-- エラーハンドリングとログ出力を実装する
-追加:
-- 単体テスト（正常系/異常系）も作成する`,
+          "id": "fdd0a9fe-7044-4acb-ac9f-f1b23cb4b35c",
+          "title": "[Codex] パフォーマンスIssueの抽出",
+          "category": "未分類",
+          "tags": [
+            "Codex",
+            "リファクタリング"
+          ],
+          "body": "リポジトリ全体を走査し、下記の「Unity特有のパフォーマンスにおい」を検出してください。\n- Update/OnGUI 内の GetComponent/FindObject*/Linq/alloc/文字列結合\n- foreach on arrays による boxing / GC\n- 毎フレーム new / ToString / StringBuilder不使用\n- Resources.Load 多用（非Addressables）\n- Instantiate/Destroy の過多\n- FixedUpdate と Update の混在\n\n### 出力フォーマット（必須・固定）\nTitle: [Refactor] {対象}:{短い問題名}\nLabels: {分類ラベル}\n\nDescription\n\nWhat\n- 問題のあるコード箇所（クラス名/メソッド名/行番号と短い説明）\n\nWhy\n- その問題が起きる根本原因\n\nImpact\n- ユーザーやフレームレートへの影響を一文で\n\n### 制約\n- **必ずこの形式で出力すること**\n- **コード変更提案は禁止**\n- **Test ideas, Suggested next steps 等は書かない**\n- **問題を端的に指摘し、理由と影響を簡潔に説明する**\n- 最大で重要な指摘3件まで\n- 除外: Assets/ThirdParty, Assets/Plugins, Assets/External, Packages, Library, Temp, obj, *.generated.cs",
+          "favorite": false,
+          "createdAt": 1756364467712
         },
         {
-          title: "バグ修正テンプレ",
-          tags: ["bugfix", "debug"],
-          body: `次の不具合を原因特定し、修正案を提示してください。
-症状:
-再現手順:
-期待結果:
-ログ/スタックトレース:
-制約:
-- 既存の公開APIは変更しない
-出力:
-- 原因候補のリストと再現条件
-- 修正方針（影響範囲、代替案）
-- 最小修正のコード例`,
+          "id": "531cc947-3a6f-48f4-a546-f195554a2090",
+          "title": "レビューコメント対応",
+          "category": "未分類",
+          "tags": [
+            "プルリクエスト",
+            "レビュー対応",
+            "First-Prompt"
+          ],
+          "body": "# Githubからプルリクエストのサマリー&レビューコメントを取得して対応\n\n## 手順\n以下の手順に従って対応せよ。\n\n### 1. PRサマリー取得\n下記コマンドでプルリクエストのサマリーを取得し、対応するプルリクエストの内容を詳細に把握してください。\n\ngh pr view {{$PR番号}} --json body -q .body\n\n### 2. レビューコメント取得\n下記コマンドでプルリクエストのレビューコメントを取得してください。\n\nCOMMITS=$(gh api \"repos/onenekko/20240318_PixelArtMuseumU6/pulls/{{$PR番号}}/commits\" --jq '.[].sha'); (gh api \"repos/onenekko/20240318_PixelArtMuseumU6/issues/{{$PR番号}}/comments\" --jq '.[] | {type:\"comment\", ts:.created_at, body:.body}'; gh api \"repos/onenekko/20240318_PixelArtMuseumU6/pulls/{{$PR番号}}/reviews\" --jq '.[] | select(.body!=null and .body!=\"\") | {type:\"review\", ts:.submitted_at, body:.body}'; gh api \"repos/onenekko/20240318_PixelArtMuseumU6/pulls/{{$PR番号}}/comments\" --jq '.[] | {type:\"inline\", ts:.created_at, path, line, body:.body}'; for sha in $COMMITS; do gh api \"repos/onenekko/20240318_PixelArtMuseumU6/commits/$sha/comments\" --jq \".[] | {type:\\\"commit\\\", ts:.created_at, commit:\\\"$sha\\\", body:.body}\"; done) | jq -sc 'map(select(.body and (.body|length>0))) | sort_by(.ts) | map(del(.ts))'\n\n### 3. 指摘に対する対応\n- 各レビューコメントに対応を始める前に、指摘自体がルール・品質基準、論理的に妥当であるかを事前に確認し、ユーザーに対して1つずつ説明してください。\n- 指摘が不当または改善に繋がらないと判断した場合は、対応不要である理由を記載してください。\n- 指摘が妥当で、修正が必要な項目については対応してください。\n- 修正のために権限が不足している場合は、担当者に具体的な対応手順を提示してください。\n- 編集操作後、1〜2行で結果の妥当性を確認し、必要に応じて自身で修正・再実施を行ってください。\n- 作業が完了したら、Unity MCPにてコンパイルし、エラーが発生していないことを確認すること。エラーがあれば対応すること。\n- nitpick（細かすぎて価値の低い指摘）は弾き、対応不要の理由を簡潔に記載してください。  \n\n### 4. 対応完了後\nコミットして内容を保存してください。ユーザーが動作確認後、ユーザー自身がプッシュするので待機してください。",
+          "favorite": false,
+          "createdAt": 1756164867623
         },
         {
-          title: "安全なリファクタリング計画",
-          tags: ["refactor", "design"],
-          body: `このコードを読みやすさと拡張性を高めるためにリファクタリングしてください。
-条件:
-- ふるまいは変更しない
-- 関数は短く、早期リターンを使う
-- 命名はドメイン語彙で明確に
-出力:
-- 課題の列挙
-- リファクタリングのステップ分解
-- リスクとテスト観点
-- 変更後のサンプルコード`,
+          "id": "a1c431e1-327e-46e1-9853-791d091be08d",
+          "title": "Linear Issue対応",
+          "category": "未分類",
+          "tags": [
+            "Linear",
+            "Issue",
+            "First-Prompt"
+          ],
+          "body": "# Linear から Issue を取得して対応\n\n## 現在のコンテキスト\n- 現在のブランチ: `git branch --show-current`\n- Git ステータス: `git status --porcelain`\n- 最新のコミット: `git log --oneline -5`\n\n## 手順\n以下の手順に従い、Linear Issue 番号NEK- {{$Issue番号}} に対応してください：\n\n### 1. Issue 取得\nLinear MCP を使って Issue 番号 NEK-{{$Issue番号}} の詳細を取得してください。Issue の内容を分析し要件を理解し、未解決の課題であることを必ず確認してください。Issue ごとにプルリクを作成するため、他の Issue の領域を侵さないよう注意してください。\n\n### 2. ブランチ準備\n以下の Git コマンドを実行してください：\n- `git checkout -b {ブランチ名}/NEK-{{$Issue番号}}_{動詞}_{機能}` の形式で新しいブランチを作成\n- `{ブランチ名}` には feat や refactor などを使用\n\n### 3. 対応計画の立案\nIssue の内容を深く分析し、最適な実装アプローチを検討してください。以下を考慮してください：\n- 影響範囲の特定\n- 必要な変更ファイルの洗い出し\n- 実装の優先順位\n- テスト方法\n\n### 4. Issue 対応の実装\n以下の重要なルールに従って実装を行ってください：\n\n**<important_rules>**\n- 各実装ステップ後、必ず Unity MCP でコンパイル確認を実行\n- エラーが発生した場合、すぐ修正してから次のステップへ進む\n- 区切りごとに動作確認を行う\n**</important_rules>**\n\n実装手順：\n1. 必要なファイルを特定・確認\n2. コードの変更を実装\n3. Unity MCP でコンパイル確認\n4. 問題があれば修正し、再度コンパイル確認\n5. 動作テストを実施\n\n各ツール呼び出しやコード編集後は、validate結果（正常かエラーか）を1〜2文で記述し、問題があれば自動的に最小修正を試みて再度確認してください。\n\n### 5. 動作確認の依頼\n以下のタイミングでユーザーへ動作確認を依頼してください：\n- 全体の対応が完了したとき\n- エラーが解決できない場合\n\n依頼時には以下を含めること：\n- 実装した内容の説明\n- 確認してほしい動作\n- 期待される結果\n\n### 6. 最終確認\n対応完了時は以下を確認してください：\n- Issue の要件が満たされている\n- すべてのコンパイルエラーが解消されている\n- すべてのテストが通過している\n- Unity MCP での動作確認が完了している\n\n## 注意事項\n- 同じエラーの対応に3回連続で失敗した場合は、ユーザーに確認を求めてください。",
+          "favorite": false,
+          "createdAt": 1756191976926
         },
         {
-          title: "READMEドラフト生成",
-          tags: ["docs", "readme"],
-          body: `プロジェクトのREADMEの草案を作成してください。
-含める項目:
-- プロジェクト概要 / スクリーンショット（任意）
-- セットアップ / 必要要件
-- 使い方（コマンド/設定例）
-- 設計の要点 / ディレクトリ構成
-- テスト / CI
-- ライセンス
-トーン: 初学者にも配慮しつつ簡潔`,
-        },
-        {
-          title: "ユニットテスト生成",
-          tags: ["test", "unit"],
-          body: `対象コードの単体テストを作成してください。
-前提:
-- フレームワーク:
-- 観点: 正常系/境界値/異常系
-出力:
-- テストケース一覧（入力/期待/目的）
-- 実装コードとモック方針
-- 実行方法`,
-        },
-        {
-          title: "コミットメッセージ整形（Conventional Commits）",
-          tags: ["git", "commit"],
-          body: `変更内容をConventional Commitsの形式で要約してください。
-入力: 変更点の箇条書き
-出力: type(scope)!: subject とボディ（理由/影響/移行）
-注意: 日本語で簡潔に`,
-        },
-        {
-          title: "コードレビュー依頼テンプレ",
-          tags: ["review", "pr"],
-          body: `この差分のレビュー観点を提案してください。
-前提: 目的/背景/方針/制約
-観点例: 正しさ/読みやすさ/責務分離/命名/テスト/性能/セキュリティ/影響範囲
-出力: チェックリストと重点確認ポイント`,
-        },
-        {
-          title: "ユーザーストーリーと受け入れ基準",
-          tags: ["spec", "ux"],
-          body: `要求からユーザーストーリーと受け入れ基準を作成してください。
-フォーマット:
-As a [ユーザー], I want [価値], so that [目的].
-受け入れ基準: Gherkin風にGiven/When/Then`,
-        },
-        {
-          title: "技術文書の要約と平易化",
-          tags: ["summary", "simplify"],
-          body: `以下の技術文書を、非エンジニアにも伝わるように要約してください。
-条件:
-- 専門用語には簡潔な補足を添える
-- 比喩は控えめに具体例を
-出力: 箇条書き＋100字要約`,
-        },
-        {
-          title: "SQL最適化アドバイス",
-          tags: ["sql", "performance"],
-          body: `以下のSQLを性能面からレビューし、最適化案を提示してください。
-出力:
-- 実行計画上の懸念
-- インデックス戦略
-- 再設計案（正規化/非正規化/分割）
-- 安全な段階的移行案`,
-        },
-        {
-          title: "正規表現作成支援",
-          tags: ["regex"],
-          body: `要件を満たす正規表現を設計し、テストケースを提示してください。
-要件:
-- マッチ例/非マッチ例
-- フラグ/グルーピングの意図
-出力: 正規表現 / 説明 / 代表テスト`,
-        },
-        {
-          title: "プロンプト改善",
-          tags: ["prompt", "improve"],
-          body: `以下のプロンプトを、曖昧さを減らし再現性を高める形に書き直してください。
-出力:
-- 改善版プロンプト
-- 変更意図（スコープ/制約/出力形式）
-- 成功基準`,
-        },
-      ].map((p, i) => ({ id: cryptoRandomId(), favorite: false, createdAt: Date.now() + i, ...p }));
+          "id": "4fe44599-6c89-4d60-8f5b-a15f74d61396",
+          "title": "プルリクエスト作成依頼",
+          "category": "未分類",
+          "tags": [
+            "プルリクエスト"
+          ],
+          "body": "# プルリクエスト作成依頼\n\n## 手順\nユーザーによる動作確認が完了、問題なし。\n以下の手順に従って対応してください：\n\n1. 変更をステージングしてコミットする。Issueなら、コミットメッセージ末尾にIssue番号を付けること。\n2. プッシュする。\n3. プルリクエストを作成する。\n\nなお、Linear側のIssueはGitHubと連動しているため、特に操作不要。",
+          "favorite": false,
+          "createdAt": 1756272315702
+        }
+      ];
 
       // 既存ユーザーにも一度だけ変数サンプルを配布
       const MIGRATION_PLACEHOLDER_SAMPLES = "promptBox.migration.placeholderSamples.v1";
