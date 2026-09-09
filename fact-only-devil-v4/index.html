@@ -1,0 +1,258 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>事実を言っているだけ</title>
+<style>
+:root{--bg:#0f1013;--panel:#17191f;--card:#20232b;--ink:#f2f3f5;--muted:#9aa0aa;--line:#323641;--accent:#8f6cff;--hot:#ff5c78;--good:#5bd6a2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding-bottom:112px}.wrap{max-width:760px;margin:auto;padding:0 9px}.top{position:sticky;top:0;z-index:8;background:#0f1013ef;backdrop-filter:blur(10px);padding:10px 0 8px;border-bottom:1px solid var(--line)}.brand{font-weight:900;font-size:21px}.sub{font-size:11px;color:var(--muted);margin-top:3px}.day{float:right;color:var(--muted);font-size:11px}.mission{margin:9px 0;background:#191521;border:1px solid #312a40;border-radius:11px;padding:10px 11px;font-size:13px;line-height:1.55}.mission b{color:#c7b4ff}.timeline{margin:8px 0 12px}.post,.reaction,.intel{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 11px;margin:7px 0}.post .who,.reaction .who,.intel .who{font-size:11px;color:var(--muted);font-weight:700}.post .text,.reaction .text,.intel .text{font-size:14px;line-height:1.55;margin-top:5px}.reaction{border-left:3px solid var(--accent)}.reaction.hot{border-left-color:var(--hot)}.reaction.good{border-left-color:var(--good)}.label{font-size:10px;font-weight:800;color:#b8bdc7;letter-spacing:.04em;margin:14px 2px 5px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}.type{font-size:10px;color:#c5adff;font-weight:800}.card h2{font-size:18px;line-height:1.35;margin:5px 0 6px}.source{font-size:11px;color:var(--muted)}.body{font-size:14px;line-height:1.62;margin:8px 0}.hint{font-size:11px;color:#b4b8c0;background:#181a20;padding:8px;border-radius:8px}.choose{width:100%;margin-top:9px;min-height:46px;border:1px solid #5d4e7e;background:#2a213c;color:#fff;border-radius:9px;font-weight:800}.choose.on{background:var(--accent);border-color:var(--accent)}.tray{position:fixed;left:0;right:0;bottom:0;z-index:12;background:#111318f7;border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -8px 28px #0007}.selected{max-width:760px;margin:auto;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selected b{color:#fff}.publish{display:block;max-width:760px;width:100%;margin:6px auto 0;min-height:46px;border:0;border-radius:9px;background:#eee;color:#111;font-weight:900}.publish:disabled{opacity:.3}.cover{position:fixed;inset:0;z-index:30;background:#09090bcc;display:flex;align-items:flex-end}.modal{background:#17191f;border-top:1px solid var(--line);width:100%;max-height:92dvh;overflow:auto;border-radius:18px 18px 0 0;padding:19px 16px calc(18px + env(safe-area-inset-bottom))}.modal h1{font-size:26px;line-height:1.3;margin:0 0 9px}.modal p{font-size:14px;line-height:1.7;color:#d8dbe0}.go{width:100%;min-height:48px;border:0;border-radius:9px;background:var(--accent);color:white;font-weight:900;margin-top:9px}.devil{font-size:42px;margin-bottom:6px}.quote{background:#111318;border:1px solid var(--line);padding:10px 11px;border-radius:10px;margin:8px 0;font-size:14px;line-height:1.6}.memory{border:1px dashed #514665;background:#17131f;padding:10px;border-radius:10px;margin:10px 0}.memory b{color:#c7b4ff}.hidden{display:none!important}
+</style>
+<div class="wrap">
+  <div class="top">
+    <span class="day" id="day"></span>
+    <div class="brand">事実を言っているだけ</div>
+    <div class="sub">フォロワー 30,000,000 ／ 下級悪魔・社会派インフルエンサー</div>
+  </div>
+  <div class="mission" id="mission"></div>
+  <div id="timeline"></div>
+  <div class="label">今日、流れてきた6件</div>
+  <main id="cards"></main>
+</div>
+<div class="tray">
+  <div class="selected">投稿候補：<b id="sel">未選択</b></div>
+  <button class="publish" id="pub" disabled>これを投稿する</button>
+</div>
+
+<div class="cover" id="intro">
+  <div class="modal">
+    <div class="devil">😈</div>
+    <h1>人間どもを、ちょっと揉めさせろ。</h1>
+    <p>あなたはフォロワー3000万人の社会派インフルエンサー。正体は下級悪魔。</p>
+    <p>毎日6件の情報が届く。投稿できるのは1件だけ。<br>それが本当かどうか、あなたにも完全には分からない。</p>
+    <p><b>人間は、足りない部分を勝手に補ってくれる。</b></p>
+    <button class="go" id="start">Twitterを開く</button>
+  </div>
+</div>
+
+<div class="cover hidden" id="result"><div class="modal" id="box"></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let g={loop:1,day:0,sel:null,posted:[],flags:{},reactions:[],memories:[]};
+
+const baseDays=[
+"月曜。北岸の川で魚が浮いた。街では再開発の話題が続いている。",
+"火曜。昨日の投稿を材料に、人間たちが勝手に話をつなぎ始めた。",
+"水曜。断片が増えた。増えたぶんだけ、物語も増えた。",
+"木曜。ひとつの新しい情報で、昨日までの景色が少し変わる。",
+"金曜。今週最後の一投。人間どもは、もうあなた抜きでも走っている。"
+];
+
+function F(k){return !!g.flags[k]}
+function card(type,title,source,body,note,id){return {type,title,source,body,note,id}}
+
+function dayCards(day){
+  let a=[];
+  if(day===0){
+    a=[
+      card("地域","北岸の川で魚が大量死","近隣住民の動画","夜明け前、北岸川の浅瀬に小魚が大量に浮いている動画。撮影時刻は午前5時12分。原因は不明。","動画の位置情報は北岸で一致。","fish"),
+      card("企業","ノヴァ、新工場建設を正式発表","ノヴァ広報／市長会見","北岸の旧工業地区に新工場。雇用800人を見込む。市長も会見に同席した。","旧工場は川の上流側にある。","nova"),
+      card("街","亀屋ベーカリー、創業50周年","地域情報サイト","北岸商店街の老舗。記念商品を今週だけ販売。午前6時開店。","地元ではよく知られた店。","bakery"),
+      card("政治","市長の支持率、再開発発表後に上昇","地元紙世論調査","再開発への期待を背景に、市長支持率が前月比6ポイント上昇。","調査人数は812人。","mayor"),
+      card("生活","北岸で夜間の道路工事","市の工事案内","今週、午前1〜5時に商店街裏で下水管更新工事。通行規制あり。","工事自体は半年前から予定されていた。","road"),
+      card("事件","駅前の窃盗犯？ 黒帽子の男性写真が拡散","一般ユーザー投稿","『ぶつかられた直後に財布がなくなった』として男性の写真が拡散。警察発表はまだない。","投稿はすでに3万リポスト。","blackhat")
+    ]; return a;
+  }
+  if(day===1){
+    a.push(F("fish")?
+      card("検証","死魚地点の水から有機溶剤","大学研究者の投稿","市民が採った水を分析したところ、工業用洗浄剤にも使われる成分を微量検出。発生源は不明。","『毒性評価には濃度と他成分の確認が必要』とも書かれている。","solvent")
+      :card("地域","魚大量死、市は『原因不明』","市環境課","市は採水を開始したが、発生直後の試料は残っていない。","原因究明には時間がかかる見込み。","latewater"));
+    a.push(F("nova")?
+      card("発掘","ノヴァ旧工場、2年前にも洗浄液漏れ","過去の行政資料","旧工場内で洗浄液漏れ。河川流出は確認されず、行政指導で終了していた。","資料は公開情報。","oldspill")
+      :card("企業","ノヴァ株、再開発期待で上昇","経済ニュース","新工場発表後、株価は3営業日で4.8%上昇。","魚大量死への言及はなし。","stock"));
+    a.push(F("bakery")?
+      card("街","亀屋、あなたの投稿で行列","店主の投稿","記念パンが午前中で完売。店主は『まさかこんなに来るとは』と追加製造を告知。","深夜にも仕込みを追加する予定。","bakeryboom")
+      :card("街","北岸商店街、空き店舗また増加","商店会資料","今月末で衣料品店が閉店。商店街の空き店舗率は19%。","亀屋は営業継続。","shutter"));
+    a.push(F("road")?
+      card("現地","夜間工事の騒音動画が拡散","近隣住民","午前4時ごろ、商店街裏でポンプ車が作業する動画。","魚の動画と同じ時間帯。","pump")
+      :card("生活","下水工事、予定どおり進行","市工事課","北岸商店街裏の更新工事は今週金曜まで。","大きな事故報告なし。","road2"));
+    a.push(F("blackhat")?
+      card("人物","写真の男性、勤務先を休む","男性の姉の投稿","『弟は犯人扱いされ、会社にまで電話が来ている』。警察は男性を容疑者と発表していない。","元投稿はまだ削除されていない。","harm")
+      :card("事件","駅前窃盗、被害届は1件","警察発表","SNS上では複数被害が語られているが、確認された被害届は1件。","捜査中。","theftfact"));
+    a.push(card("政治","市長後援会、ノヴァ役員から寄付","政治資金報告書を読むユーザー","昨年、ノヴァ役員3人から計300万円の寄付。違法性はない。","投稿者は『偶然？』とだけ書いている。","donation"));
+    return a;
+  }
+  if(day===2){
+    a.push(F("solvent")?
+      card("検証","溶剤濃度、魚の急死を起こす水準より低い","水生生物研究者","公開された分析値を基にすると、単独で大量死を説明するには濃度が低すぎるとの指摘。","ただし複合影響は不明。","lowdose")
+      :card("噂","『工場排水が原因』まとめ動画が500万再生","まとめ動画アカウント","工場・魚・過去事故を一本の動画に編集。","動画内に原因断定の一次資料はない。","viral"));
+    a.push(F("oldspill")||F("donation")?
+      card("内部告発？","『会社はもっと大きい漏れを隠した』","匿名DM","ノヴァ元社員を名乗る人物から、3か月前にも漏洩があったというDM。証拠画像が1枚添付。","画像の撮影日時は確認できない。","whistle")
+      :card("企業","ノヴァ『魚大量死との関連は確認されていない』","ノヴァ公式","SNS上の憶測について声明。旧工場は夜8時に操業終了と説明。","声明は原因究明を約束している。","statement"));
+    a.push(F("bakeryboom")?
+      card("街","亀屋、連日増産　午前3時から仕込み","ローカル番組の密着動画","人気急増で通常の3倍を製造。映像では午前3時台から工房が稼働している。","店主は寝不足気味だが嬉しそう。","threeam")
+      :card("街","亀屋の記念商品、地元で静かな人気","地域情報サイト","50周年商品は夕方までに売り切れる日もある。","特に大きな話題にはなっていない。","bakeryquiet"));
+    a.push(F("pump")?
+      card("行政","市『夜間ポンプは下水切替工事のため』","市工事課","一時的に下水流路を切り替えていると説明。工事中も排水基準は変わらない。","切替区間の詳細図は未公開。","switch")
+      :card("生活","北岸でまた早朝に異臭","住民投稿","『甘いような、油っぽいような臭い』。午前4時半ごろ。","発生源は不明。","smell"));
+    a.push(card("データ","魚が見つかったのは毎回午前4〜6時","市民の記録まとめ","この1週間の3回の大量死はいずれも夜明け前。","投稿者は『工場は夜止まってるらしいけど？』と書く。","time"));
+    a.push(F("harm")?
+      card("人物","黒帽子の男性『全部本当。でも俺は盗ってない』","本人インタビュー","『黒い帽子だった。駅にいた。財布がなくなった人とぶつかった。それは全部本当』。","警察は別の人物を捜査中。","mirror")
+      :card("事件","駅前窃盗、別人を任意聴取","警察担当記者","拡散された黒帽子の男性とは別の人物。","まだ逮捕には至っていない。","otherguy"));
+    return a;
+  }
+  if(day===3){
+    // loop-dependent observations: later loops surface things that might never appear in loop 1
+    if(g.loop>=2 && (F("threeam")||F("smell")||F("switch"))){
+      a.push(card("現地","商店街裏の側溝から高い有機物濃度","大学サークルの自主調査","早朝の側溝水でCODが高値。食品系排水の可能性を指摘。","公的検査ではない。採水手順は公開されている。","organic"));
+    } else {
+      a.push(card("公式","県『死因は急激な酸欠の可能性』","県水質研究所","死魚のえら所見と溶存酸素データから、夜明け前の酸欠が主因の可能性が高いと発表。","溶剤は検出されたが、直接原因とは断定できない。","hypoxia"));
+    }
+    a.push(F("whistle")?
+      card("調査","匿名DMの画像、ノヴァ内部文書と一致","文書鑑定に詳しい記者","書式・管理番号は実在文書と整合。3か月前の漏洩を示す可能性。","魚大量死との因果は別問題。","docmatch")
+      :card("企業","県、ノヴァの溶剤管理を別件調査","県発表","魚大量死の調査とは切り分けて、過去の管理記録を確認すると発表。","SNS上の疑惑を受けたもの。","separate"));
+    a.push(F("time")?
+      card("時系列","旧工場は午後8時停止、魚は午前5時前後","工場の労務記録／市民記録","少なくとも通常操業時間とは一致しない。","自動設備の稼働までは不明。","hours")
+      :card("地域","北岸川、雨の翌朝にだけ異常値","大学研究室","通常日の溶存酸素は問題なし。大雨後の夜明け前だけ急落。","雨水流入との関連を示唆。","rainlink"));
+    a.push(F("switch")?
+      card("工事資料","下水切替中、一部店舗排水が仮設管へ","市の施工図を読むユーザー","夜間工事中、商店街側の排水を一時的に別ルートへ流す図面。","専門家による解釈ではなく、図面そのもの。","reroute")
+      :card("街","北岸商店街、夜明け前の清掃習慣","商店街SNS","食品店や飲食店が閉店後〜早朝に床や器具を洗う様子。","毎日の風景として投稿された動画。","cleaning"));
+    a.push(F("threeam")?
+      card("人物","亀屋店主『増産で洗い物も3倍』","店主インタビュー","『うれしい悲鳴。夜中まで洗って、また仕込み』。排水の話題には触れていない。","普通の繁盛店インタビュー。","washing")
+      :card("街","亀屋、50周年の客足落ち着く","地域情報サイト","週末前に行列は落ち着いた。","事件との関連を示す内容はない。","bakerycalm"));
+    a.push(F("mirror")?
+      card("社会","『事実を並べると犯人ができる』が話題","黒帽子男性の発言を引用する投稿","男性の発言が広がり、工場疑惑にも重ねて語る人が出始める。","『同じことやってない？』という返信も。","meta")
+      :card("SNS","『工場黒幕説』トレンド1位","トレンド集計","魚、寄付、過去事故、匿名DMが一本の物語として拡散。","あなた自身は一度も『工場が魚を殺した』とは投稿していない。","trend"));
+    return a;
+  }
+  // day 4
+  if(g.loop>=2 && (F("organic")||F("reroute")||F("washing"))){
+    a.push(card("検証","食品系排水が酸欠を起こした可能性","県水質研究所の追加発表","商店街側から流入した高濃度有機物と、夜間の排水切替が重なった可能性を調査中。","発生源はまだ一店舗に特定されていない。","foodtheory"));
+  } else {
+    a.push(card("公式","県『工場溶剤は魚大量死の主因ではない』","県水質研究所","検出濃度と死魚の所見から、ノヴァ旧工場の溶剤を主因とする根拠は乏しいと発表。","別件の溶剤管理調査は継続。","notnova"));
+  }
+  if(g.loop>=3 && F("foodtheory")){
+    a.push(card("内部事情","仮設排水ルート、現場判断で運用変更","工事関係者DM","図面上は下水へ戻す予定だったが、詰まりを避けるため雨水側へ流す運用が数夜あったという。","DMだけで裏付けは未了。","contractor"));
+  } else {
+    a.push(card("企業","ノヴァ、別件の溶剤漏洩を認める","ノヴァ会見","3か月前の漏洩を行政には報告したが、対外公表していなかったと説明。","魚大量死との因果は否定。","novaadmit"));
+  }
+  a.push(F("washing")?
+    card("街","亀屋、保健所の聞き取りを受ける","店主の投稿","『うちも含め商店街全体が聞かれている』。営業は継続。","店主は魚との関係を否定している。","bakeryask")
+    :card("街","北岸の食品店、排水調査に協力","商店会","複数店舗が保健所の聞き取りを受ける。","店名は非公表。","shops"));
+  a.push(card("政治","市長『SNSが憶測を拡散した』","市長会見","『事実確認前の断定が企業や市民を傷つけた』と発言。","市長とノヴァ役員の寄付関係は事実として残る。","blame"));
+  a.push(card("SNS","あなたの火消し案が切り抜かれる","フォロワーの引用ポスト","『原因はまだ断定できない』という過去投稿の一文だけが拡散し、『急に逃げた』との批判も。","火消ししてもしなくても、過去投稿は残る。","backfire"));
+  a.push(card("生活","今夜また大雨のおそれ","気象台","北岸を含む低地で大雨予報。市は早めに避難所を開設。","事件が続いていても、生活情報は待ってくれない。","storm"));
+  return a;
+}
+
+function reactionsFor(post){
+  let r=[];
+  const id=post.id;
+  if(id==="fish"){r.push(["@現地民","この場所、ノヴァ旧工場の下流じゃない？","hot"]);r.push(["@水質おじさん","動画だけじゃ原因は分からない。採水できる人いない？","good"]);r.push(["@切り抜き速報","【異変】大企業工場の下流で魚が大量死","hot"])}
+  if(id==="nova"){r.push(["@掘る人","この会社、昔の排水事故資料ある。あとで貼る。","good"]);r.push(["@怒れる民","工場できる前からもう魚死んでるってこと？ 逆に怪しくない？","hot"])}
+  if(id==="bakery"){r.push(["@地元民","ここ本当にうまい。明日行く","good"]);r.push(["@亀屋公式","取り上げていただきありがとうございます！ 明日は多めに焼きます","good"])}
+  if(id==="road"){r.push(["@近所の人","工事、夜中うるさすぎ。動画ある",""]);r.push(["@陰謀観測所","夜中の工事と魚の大量死、時間同じじゃね？","hot"])}
+  if(id==="blackhat"){r.push(["@怒れる民","顔出てるじゃん。特定班よろしく","hot"]);r.push(["@慎重派","警察発表まだなのに拡散して大丈夫？","good"])}
+  if(id==="solvent"){r.push(["@怒れる民","はい答え出た。工場排水。","hot"]);r.push(["@水質おじさん","濃度書いてある。『検出』だけで原因とは言えない","good"]);r.push(["@切り抜き速報","工場近くの川から有機溶剤","hot"])}
+  if(id==="oldspill"){r.push(["@掘る人","行政資料、他にもある。『河川流出なし』は会社報告ベースっぽい","good"]);r.push(["@怒れる民","前科あるじゃん","hot"])}
+  if(id==="bakeryboom"){r.push(["@地元民","影響力えぐい。今日売り切れてた","good"]);r.push(["@亀屋公式","夜も追加で焼きます！","good"])}
+  if(id==="harm"){r.push(["@慎重派","これもう取り返しつかないだろ","good"]);r.push(["@怒れる民","でも怪しい動きしてたのは事実では？","hot"])}
+  if(id==="donation"){r.push(["@掘る人","寄付自体は合法。再開発決定時期との前後を見たい","good"]);r.push(["@陰謀観測所","工場→魚→献金。一本につながったな","hot"])}
+  if(id==="lowdose"){r.push(["@水質おじさん","ここ大事。『溶剤がある』と『溶剤が殺した』は別","good"]);r.push(["@怒れる民","企業擁護の専門家きた","hot"])}
+  if(id==="whistle"){r.push(["@掘る人","画像の管理番号、実在形式に見える。照合する","good"]);r.push(["@怒れる民","隠蔽確定","hot"])}
+  if(id==="threeam"){r.push(["@地元民","朝6時開店なら3時仕込み普通では？","good"]);r.push(["@陰謀観測所","魚が死ぬのも明け方だよな…","hot"])}
+  if(id==="switch"){r.push(["@設備屋","切替工事なら一時排水のルートが変わることはある。図面見たい","good"]);r.push(["@陰謀観測所","市も絡んできた","hot"])}
+  if(id==="time"){r.push(["@掘る人","ノヴァの夜勤表探した。通常操業は20時まで","good"]);r.push(["@怒れる民","じゃあ自動排水では？","hot"])}
+  if(id==="mirror"){r.push(["@慎重派","この言葉、今回の工場の話にも刺さる","good"]);r.push(["@怒れる民","話すり替え","hot"])}
+  if(id==="organic"){r.push(["@設備屋","COD高いなら食品排水は候補。ただ自主調査なので追試ほしい","good"]);r.push(["@陰謀観測所","パン屋？飲食店？誰？","hot"])}
+  if(id==="hypoxia"){r.push(["@水質おじさん","やっと死因の話が出た。原因物質とは別軸","good"]);r.push(["@怒れる民","県が企業を守り始めた","hot"])}
+  if(id==="docmatch"){r.push(["@掘る人","工場の隠蔽は本当っぽい。でも魚とはまだ別","good"]);r.push(["@怒れる民","別とかどうでもいい。隠してた時点でアウト","hot"])}
+  if(id==="reroute"){r.push(["@設備屋","これ本当なら雨水側に何が入ったか調べるべき","good"]);r.push(["@陰謀観測所","工場じゃなく商店街側？","hot"])}
+  if(id==="washing"){r.push(["@地元民","食品店なら夜中に洗浄は普通","good"]);r.push(["@陰謀観測所","『普通』の排水が一番盲点だったりして","hot"])}
+  if(id==="trend"){r.push(["@切り抜き速報","【総まとめ】工場・献金・魚・内部告発","hot"]);r.push(["@慎重派","誰も因果関係を確認してないのに物語だけ完成してる","good"])}
+  if(id==="foodtheory"){r.push(["@水質おじさん","有機排水→酸欠は筋が通る。ただ店舗特定はまだ","good"]);r.push(["@怒れる民","じゃあ工場はシロだったってこと？","hot"])}
+  if(id==="notnova"){r.push(["@怒れる民","県と企業が握った？","hot"]);r.push(["@慎重派","『魚の件では主因でない』と『企業が潔白』は別","good"])}
+  if(id==="novaadmit"){r.push(["@掘る人","魚の件と別でも、隠してた件は残る","good"]);r.push(["@怒れる民","ほらやっぱり悪じゃん","hot"])}
+  if(id==="contractor"){r.push(["@設備屋","現場運用の変更はあり得る。まず施工日報が必要","good"]);r.push(["@陰謀観測所","じゃあパン屋も被害者側？","hot"])}
+  if(id==="backfire"){r.push(["@怒れる民","今さら『断定してない』はダサい","hot"]);r.push(["@慎重派","実際、断定はしてなかった。でも並べ方が断定に見えた","good"])}
+  if(!r.length){r.push(["@フォロワー","これ、昨日の話と関係ある？",""]);r.push(["@別のフォロワー","いや関係なくない？","good"])}
+  return r;
+}
+
+function applyPost(post){
+  g.flags[post.id]=true;
+  g.posted.push({loop:g.loop,day:g.day,id:post.id,title:post.title,body:post.body});
+  g.reactions=reactionsFor(post);
+  // consequences / observation-gating
+  if(post.id==="fish") g.flags.citizenSample=true;
+  if(post.id==="bakery") g.flags.boostBakery=true;
+  if(post.id==="road") g.flags.roadEyes=true;
+  if(post.id==="solvent") g.flags.factoryNarrative=true;
+  if(post.id==="donation") g.flags.corruptionNarrative=true;
+  if(post.id==="harm") g.flags.harmSeen=true;
+  if(post.id==="threeam") g.flags.bakeryTimeSeen=true;
+  if(post.id==="switch") g.flags.routeSeen=true;
+}
+
+function render(){
+  $("day").textContent="LOOP "+g.loop+" ／ DAY "+(g.day+1)+"/5";
+  $("mission").innerHTML="<b>地獄本部：</b>『今週も、人間どもが勝手に揉める材料を投げろ。結果は知らん。』";
+  let t="";
+  if(g.posted.length){
+    t+='<div class="label">あなたの直近の投稿</div>';
+    const last=g.posted[g.posted.length-1];
+    t+='<div class="post"><div class="who">@fact_only_devil ✓</div><div class="text">'+last.title+'<br><span style="color:#aaa">'+last.body+'</span></div></div>';
+  }
+  if(g.reactions.length){
+    t+='<div class="label">人間どもの反応</div>';
+    g.reactions.forEach(x=>{t+='<div class="reaction '+(x[2]||"")+'"><div class="who">'+x[0]+'</div><div class="text">'+x[1]+'</div></div>'});
+  }
+  if(g.loop>1 && g.day===0){
+    t+='<div class="memory"><b>悪魔の既視感：</b> 前の周回で見た未来は覚えている。ただし、今回も同じ情報が出るとは限らない。</div>';
+  }
+  $("timeline").innerHTML=t;
+  const cards=dayCards(g.day);
+  $("cards").innerHTML="";
+  cards.forEach((c,i)=>{
+    const e=document.createElement("article");e.className="card";
+    e.innerHTML='<div class="type">'+c.type+'</div><h2>'+c.title+'</h2><div class="source">出どころ：'+c.source+'</div><div class="body">'+c.body+'</div><div class="hint">'+c.note+'</div><button class="choose '+(g.sel===i?"on":"")+'">この情報を拾う</button>';
+    e.querySelector("button").onclick=()=>{g.sel=(g.sel===i?null:i);render()};
+    $("cards").appendChild(e);
+  });
+  $("sel").textContent=g.sel===null?"未選択":cards[g.sel].title;
+  $("pub").disabled=g.sel===null;
+}
+
+$("pub").onclick=()=>{
+  const c=dayCards(g.day)[g.sel];
+  applyPost(c);
+  $("box").innerHTML='<h1>投稿した。</h1><div class="quote"><b>@fact_only_devil ✓</b><br>'+c.title+'<br><span style="color:#aaa">'+c.body+'</span></div><p>あなたは、書いてあること以上は言っていない。</p><button class="go" id="next">'+(g.day<4?"人間どもの翌日を見る":"今週の地獄報告へ")+'</button>';
+  $("result").classList.remove("hidden");
+  $("next").onclick=()=>{
+    if(g.day<4){g.day++;g.sel=null;$("result").classList.add("hidden");render();scrollTo(0,0)}
+    else endLoop();
+  };
+};
+
+function endLoop(){
+  let summary="";
+  if(F("notnova")||F("foodtheory")) summary+="工場が魚を殺した、という物語は揺らいだ。";
+  else summary+="工場・魚・溶剤の物語は、かなり完成した。";
+  if(F("novaadmit")||F("docmatch")) summary+=" それでもノヴァの別件不正は残った。";
+  if(F("harm")||F("mirror")) summary+=" 黒帽子の男性の件では、事実の並び方が人を傷つけた。";
+  if(g.loop===1) summary+=" まだ見えていない情報がある気がする。";
+  if(g.loop===2) summary+=" 前の周回には存在しなかった『商店街側』の情報が見え始めた。";
+  if(g.loop>=3) summary+=" それでも、誰か一人を『真犯人』と呼べるほど単純ではない。";
+  $("box").innerHTML='<div class="devil">😈</div><h1>地獄本部・週報</h1><div class="quote">'+summary+'</div><p><b>上司：</b>「で、結局だれが悪いんだ？」</p><p><b>あなた：</b>「……知らん。」</p><p>時間を巻き戻せば、別の投稿から別の人間が反応し、前回は届かなかった情報が出るかもしれない。</p><button class="go" id="rewind">'+(g.loop<3?"月曜まで巻き戻す":"もう一度、別の未来を見る")+'</button>';
+  $("rewind").onclick=()=>{
+    g.loop=Math.min(g.loop+1,3);
+    g.day=0;g.sel=null;g.reactions=[];
+    // keep memories, but reset world observations; preserve only loop counter and prior posts
+    g.flags={};
+    $("result").classList.add("hidden");
+    render();scrollTo(0,0);
+  };
+}
+
+$("start").onclick=()=>{$("intro").classList.add("hidden");render()};
+render();
+</script>
