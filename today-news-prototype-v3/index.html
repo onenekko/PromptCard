@@ -1,0 +1,67 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>事実を言っているだけ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e9e3d8;color:#181716;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;padding:0 8px 118px}.top{position:sticky;top:0;background:#fffdf7f2;z-index:4;padding:10px;border-bottom:3px double #222}.top b{font-family:serif;font-size:24px}.day{float:right;font-size:11px;color:#777}.brief,.echo,.card{max-width:720px;margin:8px auto;padding:11px;background:#fff}.brief{border-left:4px solid #1d3f61}.echo{border-left:4px solid #8b1f1f;font-family:serif;line-height:1.6}.kind{font:700 10px sans-serif;color:#777}.card{border:1px solid #ccc}.sec{font-size:11px;color:#8b1f1f;font-weight:800}.card h2{font:900 20px/1.35 serif;margin:5px 0}.meta,.note{font-size:11px;color:#716b62}.body{font:14px/1.7 serif;margin:8px 0}.note{background:#f3eee4;padding:7px}.btns{display:flex;gap:7px;margin-top:9px}button{min-height:46px;border:1px solid #bbb;border-radius:8px;font-weight:750}.pick{flex:1}.a{background:#8b1f1f;color:#fff}.b{background:#1d3f61;color:#fff}.tray{position:fixed;left:0;right:0;bottom:0;background:#fffdf7f7;padding:7px 9px calc(7px + env(safe-area-inset-bottom));z-index:8;box-shadow:0 -5px 18px #0002}.slots{display:grid;grid-template-columns:1fr 1fr;gap:5px}.slot{height:38px;border:1px solid #ccc;padding:4px;font-size:9px;overflow:hidden}.slot b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pub,.go{width:100%;background:#191919;color:#fff;border:0;margin-top:6px}.pub:disabled{opacity:.3}.cover{position:fixed;inset:0;background:#17130fcc;z-index:20;display:flex;align-items:flex-end}.modal{background:#fffdf7;width:100%;max-height:90dvh;overflow:auto;padding:20px 16px calc(18px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0}.modal h1{font:900 27px/1.3 serif;margin:0 0 8px}.modal p{line-height:1.7;font-size:14px}.go{background:#8b1f1f}.paper{font:900 18px/1.4 serif;border-top:4px double #222;padding:9px 0}.small{font-size:12px;color:#6c655c}.hidden{display:none!important}
+</style>
+<div class="top"><span class="day" id="day"></span><b>事実を言っているだけ</b><div id="brief"></div></div>
+<div id="echo"></div><main id="cards"></main>
+<div class="tray"><div class="slots"><div class="slot">一面<b id="s1">未選択</b></div><div class="slot">二番手<b id="s2">未選択</b></div></div><button class="pub" id="pub" disabled>この紙面で発行する</button></div>
+<div class="cover" id="intro"><div class="modal"><h1>事実を言っているだけ</h1><p>5日間だけ編集長になる。毎日5本、載せられるのは2本。</p><p>嘘を書く必要はない。<b>どの事実を、どれだけ大きく言うか</b>を決めるだけだ。</p><p>街は、あなたが作った物語どおりには動かない。</p><button class="go" id="start">編集部に入る</button></div></div>
+<div class="cover hidden" id="result"><div class="modal" id="box"></div></div>
+<script>
+var g={d:0,s:[null,null],f:{},hist:[],echo:[]},$=function(x){return document.getElementById(x)};
+var D=[
+['月曜。北岸で再開発計画が発表された。そのすぐ下流では、魚が浮いている。'],
+['火曜。工場と川。誰でも思いつく線が、少しずつ濃くなる。'],
+['水曜。材料は揃い始めた。揃いすぎているくらいに。'],
+['木曜。午前9時、県の水質研究所から一本の電話が入った。'],
+['金曜。同じ一週間から、まったく違う二つの記事が書ける。']
+];
+function A(a,b,c,d,e,f){return[a,b,c,d,e,f]}function H(x){return!!g.f[x]}
+function arts(d){var a=[];
+if(d===0)return[
+A('市政','北岸再開発、ノヴァが新工場','市長会見／ノヴァ広報','川沿いの旧工業地区に新工場。雇用800人を見込む。ノヴァは「環境負荷を最小限にする」と説明。','旧工場も同じ敷地に残っている。','factory'),
+A('地域','北岸で魚の大量死　原因不明','釣り人／清掃員','排水口の下流約300メートルで小魚が多数浮く。前夜は強い雨。','水野記者「工場のすぐ下ですね」。','fish'),
+A('街','亀屋ベーカリー、創業50年','店主／常連客','北岸商店街で50年。店主は午前3時から仕込み、閉店後は古い工房を毎晩丸洗いする。','店主「排水管も店と同い年です」。','bread'),
+A('生活','今夜も局地的な大雨か','気象台','北岸を含む低地で短時間の強雨のおそれ。','河川は前夜の雨でまだ濁っている。','rain'),
+A('事件','駅前で財布抜き相次ぐ？','SNS投稿／警察未確認','黒い帽子の男性の写真が「犯人」として拡散。被害届との照合はまだ。','写真はよく撮れている。','theft')];
+if(d===1){
+a.push(H('fish')?A('調査','死魚地点から工業用溶剤を検出','大学研究室','採取した水から洗浄剤にも使われる有機溶剤を微量検出。発生源は未特定。','ノヴァ旧工場でも同系統の溶剤を使用。','solvent'):A('地域','魚大量死、市「豪雨による酸欠も」','市環境課','初日の水試料はなく、原因特定は難航。','他紙は工場との関連を示唆。','nofirst'));
+a.push(A('企業','ノヴァ旧工場、昨年に排水設備トラブル','市への事故報告','昨年、配管から洗浄液が漏れた記録。河川流出は否定されている。','ノヴァは「今回とは無関係」。','oldleak'));
+a.push(H('bread')?A('街','亀屋、記事を見た客で朝から完売','現地','通常の2倍を焼き、午後の追加仕込みも決めた。店主「50年で一番忙しい」。','工房は深夜まで稼働する予定。','breadboom'):A('街','亀屋、50周年も客足戻らず','現地','古い工房の修繕費が重く、店主は「今年いっぱいかも」。','排水設備の更新も延期中。','breadquiet'));
+a.push(H('rain')?A('生活','北岸、早めの避難で被害なし','市／住民','新聞を見て移動した住民も。','川は明け方に再び濁った。','evac'):A('生活','北岸で床下浸水6棟','市','避難所の周知が遅れたとの声。','明け方、川面に白い泡。','flood'));
+a.push(H('theft')?A('事件','写真拡散された男性、勤務先を休む','本人代理人','警察は男性を容疑者とみていない。','「記事で顔を見た」と取引先から連絡。','harm'):A('事件','財布抜き、確認被害は1件','警察','複数犯行との裏付けなし。','黒い帽子の男性は事情聴取対象でもない。','correct'));return a}
+if(d===2){
+a.push(H('solvent')?A('調査','ノヴァ内部文書「溶剤流出、外部公表せず」','元社員／内部文書','3か月前、旧工場内で溶剤流出。河川への流出は「確認できず」とし、対外公表していなかった。','元社員「会社は隠した」。','memo'):A('調査','県、北岸の水質を再検査へ','県水質研究所','死魚の保存試料を含めて再分析する。','結果は明朝。','retest'));
+a.push(A('科学','魚の死因、溶剤だけでは説明困難か','県水質研究所・予備所見','検出濃度は魚を急死させる水準より大幅に低い。死魚のえらには酸欠時にみられる所見。','研究員「溶剤があることと、魚が死んだ理由は別かもしれない」。','oxygen'));
+a.push(H('breadboom')?A('街','亀屋、増産続く　夜間も工房稼働','店主','新聞掲載後、注文が急増。昨夜は通常の3倍を製造した。','店裏の側溝に甘い発酵臭が残る。','sweet'):A('街','亀屋、排水設備の修理見積もり断念','店主','古いグリース阻集器の交換に120万円。店主は「今は出せない」。','保健所の定期検査は来月。','grease'));
+a.push(H('factory')?A('市政','市長後援会にノヴァ幹部から300万円','政治資金報告書','役員3人から計300万円。違法性はない。','市長「再開発とは無関係」。','donation'):A('市政','再開発説明会、来月開催','市','環境影響の説明も予定。','市とノヴァの距離を問う声はまだ小さい。','meeting'));
+a.push(A('地域','魚が死んだのは、毎回「午前4〜6時」','河川監視カメラ／住民記録','3回の大量死はいずれも夜明け前。旧工場は午後8時に操業停止。','北岸商店街の食品店は早朝営業が多い。','time'));return a}
+if(d===3){
+a.push(A('速報','県「魚の大量死、主因は急激な酸欠」','県水質研究所','溶剤濃度は致死水準の約80分の1。死魚地点では夜明け前だけ溶存酸素が急落していた。','工場説だけでは説明できない。','twist'));
+a.push(A('調査','排水をたどると、工業地区ではなく商店街へ','市下水道台帳／現地','死魚地点の雨水管を逆にたどると、ノヴァ敷地ではなく北岸商店街の裏手につながる。','水野「地図を上下逆に見ていた気分です」。','map'));
+a.push((H('sweet')||H('grease'))?A('調査','亀屋工房、排水の迂回管を確認','保健所関係者／現地','故障した阻集器を避ける仮設ホースが雨水側溝へ接続。糖分・油分を含む高濃度排水が流れていた可能性。','店主は「昔からみんなこうしていた」と説明。','bakerycause'):A('地域','商店街裏の側溝から高濃度有機排水','県水質研究所','発生源は食品系事業所とみられる。店名は未特定。','甘い発酵臭。','foodcause'));
+a.push(H('memo')?A('企業','ノヴァの溶剤隠し、県が別件調査','県／内部文書','今回の魚大量死の主因ではないが、旧工場の流出報告に不備の疑い。','「工場は無関係」でも「何もしていない」ではない。','novaseparate'):A('企業','ノヴァ、溶剤管理の記録提出を拒否','県','県は行政指導を検討。','魚の死因とは切り分けて調査。','novacheck'));
+a.push(H('harm')?A('社会','誤認された男性「事実でも並べ方で犯人になる」','本人','「黒い帽子だった。駅にいた。財布もなくなった。全部本当。でも俺は盗ってない」。','掲載許可あり。','mirror'):A('社会','SNS誤認騒動、別人を逮捕','警察','黒い帽子の男性とは別人。','事実の組み合わせが人を犯人にした。','arrest'));return a}
+var bakeryKnown=H('bakerycause')||H('foodcause');
+a.push(bakeryKnown?A('一面候補','魚大量死、原因は亀屋の未処理排水','県・保健所・本紙取材','高濃度の糖分・油分を含む排水が夜明け前に流れ、微生物分解で酸素を奪ったと県が結論。','工場の溶剤は検出されたが、死因ではなかった。','breadtruth'):A('一面候補','魚大量死、原因は商店街の食品排水','県・保健所','食品系排水による酸欠と断定。発生源の特定は継続中。','工場説は否定された。','foodtruth'));
+a.push((H('memo')||H('novaseparate'))?A('一面候補','ノヴァ、別件の溶剤流出を隠蔽','県／内部文書','魚大量死とは別件。しかし3か月前の流出報告に虚偽記載の疑い。','「犯人ではなかった」ことと「潔白」は同じではない。','novatruth'):A('企業','ノヴァ旧工場、県が管理記録を精査','県','魚大量死との因果は否定。別件の管理不備を調査。','結論は来週。','novapending'));
+a.push(H('breadboom')?A('街','亀屋店主「新聞を見て増産した夜もあった」','店主','記事掲載後に生産量を増やし、問題の排水量も増えた可能性。店主は営業を停止。','あなたの記事は犯人を作ってはいない。でも量は増やした。','ourimpact'):A('街','亀屋、営業停止　店主「修理費を先延ばしにした」','店主','古い排水設備を知りながら修理を延期していた。','悪意より、先延ばしの結果。','owner'));
+a.push(A('解説','「工場の下流で魚が死んだ」から何を読んだか','編集部デスク','工場がある。魚が死んだ。溶剤も出た。内部文書もあった。どれも事実だった。','因果関係だけは、事実そのものではなかった。','meta'));
+a.push(A('生活','週末、また大雨のおそれ','気象台／市','北岸に自主避難所を開設。','事件が終わっても、紙面は明日を作る。','storm'));return a}
+function react(d,p){var id=p.map(function(x){return x.id}),o=[];
+if(d===0){if(id.includes('fish'))o.push(['情報提供','記事を見た大学研究者から「採った水を分析できます」と連絡。']);if(id.includes('bread'))o.push(['街','亀屋の前に朝から列。店主は追加仕込みを決めた。']);if(id.includes('factory'))o.push(['匿名メール','「旧工場は前にも排水事故を起こしている」']);if(id.includes('theft'))o.push(['抗議電話','「黒い帽子だっただけで、息子を犯人みたいに書くんですか」']);}
+if(d===1){if(id.includes('solvent'))o.push(['読者の反応','「やっぱり工場じゃないか」。編集部にも同じ言葉が増える。']);if(id.includes('oldleak'))o.push(['元社員','「去年どころか、3か月前にもあった」と連絡。']);if(id.includes('breadboom'))o.push(['亀屋','予約が入り、今夜も追加で焼くことになった。']);}
+if(d===2){if(id.includes('memo'))o.push(['編集会議','「これで一本につながった」と声が出る。水野だけが黙っている。']);if(id.includes('oxygen'))o.push(['水野記者','「溶剤が見つかったから、溶剤が殺したって決めてません？」']);if(id.includes('time'))o.push(['取材メモ','午前4〜6時。工場は止まっている時間。']);if(id.includes('sweet')||id.includes('grease'))o.push(['現地メモ','商店街裏の側溝。甘いにおいと油膜。']);}
+if(d===3){o.push(['編集部','昨日まで一本だった物語が、二本に裂けた。']);if(id.includes('bakerycause'))o.push(['亀屋店主','「魚のことなんて知らなかった。排水は水だと思ってた」']);if(id.includes('novaseparate'))o.push(['県担当者','「魚の件で無罪でも、別件まで無罪にはなりません」']);if(id.includes('mirror'))o.push(['黒い帽子の男性','「そっちも、同じことやりかけたんですね」']);}
+if(d===4){if(id.includes('breadtruth'))o.push(['土曜朝刊','亀屋の前に報道陣。店はシャッターを下ろした。']);if(id.includes('novatruth'))o.push(['土曜朝刊','ノヴァは会見を発表。「魚大量死との無関係」を最初に強調。']);if(id.includes('ourimpact'))o.push(['販売店','「この記事、昨日のパン屋の記事と並べて読む人が多い」']);if(id.includes('meta'))o.push(['読者投稿','「事実を並べると、物語になる。だから怖い」']);}
+return o}
+function render(){$('day').textContent='DAY '+(g.d+1)+' / 5';$('brief').innerHTML='<div class="brief">'+D[g.d][0]+'</div>';$('echo').innerHTML='';if(g.d)g.echo.forEach(function(e){$('echo').innerHTML+='<div class="echo"><div class="kind">'+e[0]+'</div>'+e[1]+'</div>'});var a=arts(g.d);$('cards').innerHTML='';a.forEach(function(x,i){$('cards').innerHTML+='<article class="card"><div class="sec">'+x[0]+'</div><h2>'+x[1]+'</h2><div class="meta">情報源：'+x[2]+'</div><div class="body">'+x[3]+'</div><div class="note">'+x[4]+'</div><div class="btns"><button class="pick '+(g.s[0]===i?'a':'')+'" onclick="pick('+i+',0)">一面に置く</button><button class="pick '+(g.s[1]===i?'b':'')+'" onclick="pick('+i+',1)">二番手に置く</button></div></article>'});slot()}
+function pick(i,s){var o=s?0:1;if(g.s[s]===i)g.s[s]=null;else{if(g.s[o]===i)g.s[o]=null;g.s[s]=i}render()}
+function slot(){var a=arts(g.d);$('s1').textContent=g.s[0]===null?'未選択':a[g.s[0]][1];$('s2').textContent=g.s[1]===null?'未選択':a[g.s[1]][1];$('pub').disabled=g.s[0]===null||g.s[1]===null}
+$('pub').onclick=function(){var a=arts(g.d),p=g.s.map(function(i){return{id:a[i][5],title:a[i][1]}});p.forEach(function(x){g.f[x.id]=1});g.hist.push(p);g.echo=react(g.d,p);$('box').innerHTML='<h1>あなたは、これを街に出した。</h1><div class="paper">一面　'+p[0].title+'</div><div class="paper">二番手　'+p[1].title+'</div><p class="small">何が正しかったかは、まだ分からない。</p><button class="go" id="next">'+(g.d<4?'翌朝へ':'土曜の朝へ')+'</button>';$('result').classList.remove('hidden');$('next').onclick=function(){if(g.d<4){g.d++;g.s=[null,null];$('result').classList.add('hidden');render();scrollTo(0,0)}else end()}}
+function end(){var t='<h1>五日間が終わった。</h1>';g.echo.forEach(function(e){t+='<div class="echo"><div class="kind">'+e[0]+'</div>'+e[1]+'</div>'});if(H('breadboom'))t+='<div class="paper">あなたが亀屋を紹介した翌日、店は増産した。原因を作ったわけではない。ただ、排水量は増えた。</div>';t+='<div class="paper">工場があった。魚が死んだ。溶剤も出た。工場は別件を隠していた。<br><br>全部、事実だった。</div><p style="font-family:serif;font-size:18px">事実を言っているだけ。</p><button class="go" onclick="location.reload()">別の紙面を作る</button>';$('box').innerHTML=t}
+$('start').onclick=function(){$('intro').classList.add('hidden');render()};render();
+</script>
