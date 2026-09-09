@@ -79,7 +79,7 @@ button{font:inherit}
   <div class="modal">
     <div class="devil">😈</div>
     <h1>あなたは、フォロワー3000万人の下級悪魔。</h1>
-    <p>人間界では社会派インフルエンサーとして活動している。今週の地獄本部からの指令はひとつ。</p>
+    <p>人間界では社会派インフルエンサー『レイ』として活動している。人間たちは、あなたの正体を知らない。今週の地獄本部からの指令はひとつ。</p>
     <div class="quote"><b>「5日間で、人間社会をできるだけ揉めさせろ。」</b></div>
     <p>今朝、人気配信者ミオと所属事務所NOAの契約解除が発表された。何があったのかは、まだ誰も全体を知らない。</p>
     <p>毎日あなたのもとに<b>6件の情報</b>が流れてくる。公式声明、本人の投稿、匿名リーク、切り抜き、噂――出どころはバラバラだ。</p>
@@ -429,7 +429,7 @@ function crowdFor(c){
   if(g.audience.skeptic>=2) add("@疑いすぎる人","公式もリークも専門家も全部利害関係者だろ。何も信じない。","weird");
   if(g.history.length>=3){
     const old=g.history[Math.max(0,g.history.length-3)];
-    add("@古参フォロワー","待って。"+(old?("3日前に悪魔が拾った『"+old.title+"』と"):"前の投稿と")+"話変わってない？","weird");
+    add("@古参フォロワー","待って。"+(old?("3日前にレイが投稿した『"+old.title+"』と"):"前の投稿と")+"話変わってない？","weird");
   }
   return r.slice(0,5);
 }
@@ -461,7 +461,7 @@ function renderTimeline(){
   if(g.history.length){
     const last=g.history[g.history.length-1];
     t+='<div class="label">あなたの直近の投稿</div>';
-    t+='<div class="post"><div class="who">@fact_only_devil ✓</div><div class="text">'+last.title+'<br><span style="color:#aeb3bc">'+last.body+'</span></div></div>';
+    t+='<div class="post"><div class="who">@rei_watch ✓</div><div class="text">'+last.title+'<br><span style="color:#aeb3bc">'+last.body+'</span></div></div>';
   }
   if(g.reactions.length){
     t+='<div class="label">3000万人の解釈</div>';
@@ -473,10 +473,10 @@ function renderTimeline(){
 }
 
 function render(){
-  $("day").textContent="LOOP "+g.loop+" ／ DAY "+(g.day+1)+"/5";
+  const weekday=["月","火","水","木","金"][g.day]; $("day").textContent=g.loop+"周目 ／ "+weekday+"曜日";
   $("mission").innerHTML="<b>地獄本部：</b>「今週の指令：5日間で人間社会を揉めさせろ。」<br><span class='small'>"+dayMood[g.day]+"</span>";
   if(g.loop>1 && g.day===0){
-    $("memory").innerHTML='<div class="memory"><b>巻き戻し '+g.loop+' 回目：</b>あなたは前回の5日間を覚えている。人間たちは月曜の朝に戻っている。この周では、前回と同じ情報が出るとは限らない。</div>';
+    $("memory").innerHTML='<div class="memory"><b>時間を '+(g.loop-1)+' 回巻き戻した：</b>あなたは前回の5日間を覚えている。人間たちは月曜の朝に戻っている。この周では、前回と同じ情報が出るとは限らない。</div>';
   } else $("memory").innerHTML="";
   renderTimeline();
 
@@ -485,7 +485,7 @@ function render(){
   cards.forEach((c,i)=>{
     const e=document.createElement("article");
     e.className="card";
-    e.innerHTML='<div class="type">'+c.type+'</div><h2>'+c.title+'</h2><div class="source">出どころ：'+c.source+'</div><div class="body">'+c.body+'</div><div class="prov">'+c.prov+'</div><button class="choose '+(g.sel===i?"on":"")+'">この情報を拾う</button>';
+    e.innerHTML='<div class="type">'+c.type+'</div><h2>'+c.title+'</h2><div class="source">出どころ：'+c.source+'</div><div class="body">'+c.body+'</div><div class="prov">'+c.prov+'</div><button class="choose '+(g.sel===i?"on":"")+'">投稿候補にする</button>';
     e.querySelector("button").onclick=()=>{g.sel=(g.sel===i?null:i);render()};
     $("cards").appendChild(e);
   });
@@ -496,7 +496,7 @@ function render(){
 $("pub").onclick=()=>{
   const c=dayCards(g.day)[g.sel];
   applyPost(c);
-  $("box").innerHTML='<h1>3000万人に投稿した。</h1><div class="quote"><b>@fact_only_devil ✓</b><br>'+c.title+'<br><span style="color:#aeb3bc">'+c.body+'</span></div><p>ここから先は、人間たちが読む。</p><button id="next" class="go">'+(g.day<4?"翌朝を見る":"地獄本部へ報告する")+'</button>';
+  $("box").innerHTML='<h1>3000万人に投稿した。</h1><div class="quote"><b>@rei_watch ✓</b><br>'+c.title+'<br><span style="color:#aeb3bc">'+c.body+'</span></div><p>ここから先は、人間たちが読む。</p><button id="next" class="go">'+(g.day<4?"翌朝を見る":"地獄本部へ報告する")+'</button>';
   $("result").classList.remove("hidden");
   $("next").onclick=()=>{
     if(g.day<4){
@@ -522,7 +522,7 @@ function endLoop(){
 
   let loopHint="";
   if(g.loop===1) loopHint="まだ出ていない証言や資料がある。別の投稿をすれば、別の人間が動くかもしれない。";
-  else if(g.loop===2) loopHint="前回は出なかった情報が出た。次は、別の情報源を先に動かしてみてもいい。";
+  else if(g.loop===2) loopHint="前回は出なかった情報が出た。別の情報を投稿すれば、今度は違う人が反応するかもしれない。";
   else if(g.loop===3) loopHint="地獄本部は結果だけを求めている。誰を信じるかは、あなたの仕事ではない。";
   else loopHint="月曜は何度でも戻る。あなたが変えられるのは、3000万人の前に何を置くかだけだ。";
 
