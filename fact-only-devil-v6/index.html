@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>事実を言っているだけ v6</title>
+<style>
+:root{
+  --bg:#0b0c0f;--panel:#15171c;--card:#1c1f26;--ink:#f4f5f7;--muted:#969ca7;
+  --line:#2d313b;--violet:#8b6cff;--pink:#ff6680;--green:#61d8a7;--amber:#f2bc63;--blue:#69a8ff;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding-bottom:116px}
+button{font:inherit}
+.wrap{max-width:760px;margin:auto;padding:0 10px}
+.top{position:sticky;top:0;z-index:8;background:#0b0c0ff0;backdrop-filter:blur(12px);padding:11px 1px 9px;border-bottom:1px solid var(--line)}
+.brand{font-size:21px;font-weight:900;letter-spacing:-.02em}
+.sub{font-size:11px;color:var(--muted);margin-top:3px}
+.day{float:right;font-size:11px;color:#bbb}
+.mission{margin:9px 0 5px;padding:10px 11px;border-radius:12px;background:#18131f;border:1px solid #342943;font-size:13px;line-height:1.55}
+.mission b{color:#cbbcff}
+.memory{margin:9px 0;padding:10px 11px;border:1px dashed #55456b;border-radius:11px;background:#15111d;font-size:12px;line-height:1.55;color:#d5cee0}
+.label{font-size:10px;font-weight:900;color:#aeb4bf;letter-spacing:.07em;margin:15px 2px 6px}
+.post,.reaction{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 11px;margin:7px 0}
+.post{border-left:3px solid var(--violet)}
+.reaction{border-left:3px solid #485061}
+.reaction.hot{border-left-color:var(--pink)}
+.reaction.good{border-left-color:var(--green)}
+.reaction.weird{border-left-color:var(--amber)}
+.who{font-size:11px;color:var(--muted);font-weight:800}
+.text{font-size:14px;line-height:1.58;margin-top:5px}
+.context{font-size:11px;color:#b7bcc6;margin-top:5px}
+.cards{margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:9px 0}
+.type{display:inline-block;font-size:10px;font-weight:900;color:#cbbcff;background:#292136;padding:3px 7px;border-radius:999px}
+.card h2{font-size:18px;line-height:1.38;margin:7px 0 5px;letter-spacing:-.01em}
+.source{font-size:11px;color:var(--muted)}
+.body{font-size:14px;line-height:1.65;margin:9px 0}
+.prov{font-size:11px;line-height:1.55;color:#c1c5cd;padding:8px 9px;border-radius:9px;background:#14161b;border:1px solid #262a33}
+.choose{width:100%;min-height:46px;margin-top:9px;border-radius:10px;border:1px solid #5b4c7d;background:#261f35;color:white;font-weight:900}
+.choose.on{background:var(--violet);border-color:var(--violet)}
+.tray{position:fixed;left:0;right:0;bottom:0;z-index:12;background:#0f1116f8;border-top:1px solid var(--line);padding:8px 10px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px #0008}
+.selected{max-width:760px;margin:auto;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selected b{color:white}
+.publish{display:block;max-width:760px;width:100%;min-height:47px;margin:6px auto 0;border:0;border-radius:10px;background:#f1f1f3;color:#111;font-weight:900}
+.publish:disabled{opacity:.28}
+.cover{position:fixed;inset:0;z-index:30;background:#06070ad9;display:flex;align-items:flex-end}
+.modal{width:100%;max-height:93dvh;overflow:auto;background:#15171c;border-top:1px solid var(--line);border-radius:19px 19px 0 0;padding:19px 16px calc(18px + env(safe-area-inset-bottom))}
+.modal h1{font-size:25px;line-height:1.32;margin:0 0 9px}
+.modal p{font-size:14px;line-height:1.7;color:#d8dbe1}
+.devil{font-size:43px;margin-bottom:5px}
+.quote{border:1px solid var(--line);background:#101218;border-radius:10px;padding:10px 11px;font-size:14px;line-height:1.6;margin:9px 0}
+.go{width:100%;min-height:49px;border:0;border-radius:10px;background:var(--violet);color:white;font-weight:900;margin-top:9px}
+.small{font-size:11px;color:var(--muted);line-height:1.55}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span id="day" class="day"></span>
+    <div class="brand">事実を言っているだけ</div>
+    <div class="sub">フォロワー 30,000,000 ／ 下級悪魔・社会派インフルエンサー</div>
+  </header>
+  <div id="mission" class="mission"></div>
+  <div id="memory"></div>
+  <section id="timeline"></section>
+  <div class="label">いま流れてきた6件</div>
+  <main id="cards" class="cards"></main>
+</div>
+
+<div class="tray">
+  <div class="selected">投稿候補：<b id="sel">未選択</b></div>
+  <button id="pub" class="publish" disabled>これを投稿する</button>
+</div>
+
+<div id="intro" class="cover">
+  <div class="modal">
+    <div class="devil">😈</div>
+    <h1>あなたは、フォロワー3000万人の下級悪魔。</h1>
+    <p>人間界では社会派インフルエンサーとして活動している。今週の地獄本部からの指令はひとつ。</p>
+    <div class="quote"><b>「5日間で、人間社会をできるだけ揉めさせろ。」</b></div>
+    <p>今朝、人気配信者ミオと所属事務所NOAの契約解除が発表された。何があったのかは、まだ誰も全体を知らない。</p>
+    <p>毎日あなたのもとに<b>6件の情報</b>が流れてくる。公式声明、本人の投稿、匿名リーク、切り抜き、噂――出どころはバラバラだ。</p>
+    <p><b>1日に投稿できるのは1件だけ。</b>文章は足さない。その情報を3000万人の前に置くだけだ。</p>
+    <p>5日が終われば、悪魔の力で月曜の朝まで時間を戻せる。あなたは前の5日間を覚えているが、人間たちは覚えていない。</p>
+    <p class="small">同じ月曜でも、あなたが何を投稿したかで、次に出てくる証言や資料は変わる。</p>
+    <button id="start" class="go">月曜の朝を始める</button>
+  </div>
+</div>
+
+<div id="result" class="cover hidden"><div id="box" class="modal"></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let g={
+  loop:1,day:0,sel:null,flags:{},reactions:[],history:[],allHistory:[],
+  audience:{mob:0,diggers:0,skeptic:0},seenLoops:[]
+};
+
+const dayMood=[
+  "月曜。ミオとNOAの契約解除が発表された。まだ理由ははっきりしていない。",
+  "火曜。あなたの投稿を見た人たちが、過去の発言や資料を掘り始めた。",
+  "水曜。新しい資料と音声が出てきた。どちらも、出どころまで含めて読む必要がある。",
+  "木曜。昨日まで注目されていた情報とは別の話が浮かび始めた。",
+  "金曜。今週最後の一投。人間たちは、もうあなたが投稿していない情報まで探し始めている。"
+];
+
+function F(k){return !!g.flags[k]}
+function C(type,title,source,body,prov,id,tags=[]){return {type,title,source,body,prov,id,tags}}
+function postCount(tag){return g.history.filter(x=>x.tags&&x.tags.includes(tag)).length}
+
+function dayCards(d){
+  let a=[];
+  if(d===0){
+    return [
+      C("公式","NOA、ミオとの専属契約解除を発表","NOA公式声明",
+        "人気配信者ミオについて『複数回の契約違反が確認され、協議のうえ契約を終了した』と発表。違反内容は非公表。",
+        "NOA名義の公式文書。『協議のうえ』が本人の認識と一致するかは不明。","noa","company"),
+      C("本人","ミオ『私は、働いた分を受け取りたいだけです』","ミオ本人の投稿",
+        "契約解除の発表から14分後の投稿。『詳しいことは今は話せない。でも、私は働いた分を受け取りたいだけです』。",
+        "本人のアカウントからの投稿。何の支払いを指すかは書かれていない。","mio","person"),
+      C("匿名告発","『NOAは配信者への支払いを止めていた』","匿名アカウント @NorthWind",
+        "元スタッフを名乗り、『春から一部配信者への案件報酬を社内判断で保留していた』と投稿。社内チャットらしき画像が1枚添付されている。",
+        "匿名。画像の作成元・日時は確認できない。","northwind","leak"),
+      C("証言","所属配信者ルイ『私は普通に支払われています』","ルイ本人の配信切り抜き",
+        "同じNOA所属のルイが生配信で『少なくとも私は未払いはない。会社が全部悪いみたいなのは違うと思う』と話した。",
+        "本人発言の切り抜き。ミオと同じ契約条件かは不明。","rui","person"),
+      C("業界","広告案件の入金は数か月遅れることもある","広告業界ライターの記事",
+        "企業案件では広告主・代理店・事務所・出演者と決済が多段になり、入金が数か月ずれる例もあるという一般解説。",
+        "今回のNOA案件について取材した記事ではない。","industry","context"),
+      C("SNS","『ミオは以前から移籍を考えていた』という投稿が拡散","まとめアカウント",
+        "『業界関係者から聞いた』として、ミオが別事務所への移籍を検討していたという投稿。具体的な時期や相手は書かれていない。",
+        "一次情報なし。すでに8万リポスト。","moveRumor","rumor")
+    ];
+  }
+
+  if(d===1){
+    a.push(
+      F("northwind")||F("mio") ?
+      C("流出資料","『調整留保』と書かれた支払一覧が流出","@NorthWind",
+        "配信者名の一部を伏せた表計算画面。ミオの欄に『案件報酬 1,840,000円／調整留保 420,000円』と読める。",
+        "画像だけでは会計上の意味は分からない。ミオ本人のものかも未確認。","sheet","leak")
+      :
+      C("公式","NOA『未払いとの指摘は事実と異なる』","NOA公式",
+        "『契約に基づく精算処理を未払いと表現する投稿が拡散している』と声明。個別契約の内容は守秘義務のため説明できないという。",
+        "『未払いではない』とする会社側の説明。具体的な金額は示していない。","denial","company")
+    );
+    a.push(
+      F("noa") ?
+      C("元社員","元経理スタッフ『会社の説明だけでは足りない』","退職済み経理スタッフ・レナ",
+        "実名アカウントで『精算処理という言い方は間違いではない。でも、配信者側に十分な説明があったかは別問題』と投稿。",
+        "NOA在籍は過去の登記・SNSで確認できる。退職理由は不明。","rena","person")
+      :
+      C("再浮上","ミオ、半年前には『NOAには感謝している』","ファンの過去動画",
+        "イベントでミオが『事務所には本当に支えてもらってる』と話す映像が再拡散。",
+        "半年前の発言。現在のトラブルと両立しないとは限らない。","oldPraise","context")
+    );
+    a.push(
+      F("rui") ?
+      C("反応","ルイのSNSに『お前も共犯か』が殺到","ルイ本人",
+        "ルイが『ミオのことは分からない。私は自分のことを話しただけ』と投稿。広告案件を降板させろという呼びかけも始まった。",
+        "ルイはミオへの支払いについて知っているとは一度も言っていない。","ruiMob","crowd")
+      :
+      C("証言","小規模配信者サキ『私も一度だけ精算が遅れた』","元NOA所属・サキ",
+        "昨年、案件報酬が予定より6週間遅れた経験を投稿。ただし『最終的には全額払われた』とも書いている。",
+        "本人名義。今回と同じ理由だったかは不明。","saki","person")
+    );
+    a.push(
+      C("契約","NOA旧契約書らしきPDFが拡散","匿名アップローダー",
+        "『広告主との精算に争いがある場合、事務所は報酬の一部を一時留保できる』という条項があるPDF。",
+        "2024年版とされるが、ミオが同じ版に署名した証拠はない。","contract","document"),
+      C("人物","@NorthWindは元マネージャー・久住では？","暴露系配信者",
+        "過去の写真と投稿時間帯を根拠に、匿名告発者の正体を元NOAマネージャー久住と推測。久住は昨年退職している。",
+        "本人確認はない。勤務歴自体は公開プロフィールで確認できる。","identify","crowd"),
+      C("業界","ライバル事務所LARK代表がミオの投稿に『いいね』","ユーザー観測",
+        "契約解除から2時間後、LARK代表のアカウントがミオの投稿に『いいね』していたスクリーンショットが拡散。現在いいねは外れている。",
+        "スクリーンショットの時刻表示はあるが、移籍交渉の有無までは分からない。","larkLike","rumor")
+    );
+    return a;
+  }
+
+  if(d===2){
+    a.push(
+      F("sheet") ?
+      C("検証","会計士『この表だけでは“横領”も“未払い”も証明しない』","会計解説アカウント・佐伯",
+        "『調整留保は契約上の一時保留を意味することもある。元帳・契約書・入金状況が必要』と解説。SNSでは“NOA擁護”と反発も。",
+        "佐伯は企業会計の解説で有名。今回の当事者への取材はしていない。","saeki","expert")
+      :
+      C("流出資料","NOAの精算表らしき画像、別アカウントからも出る","匿名投稿",
+        "昨日とは別形式の表に『MIO／reserve 420k』の記載。@NorthWindの画像と金額が一致する。",
+        "同じ元データを転載しただけの可能性もある。","sheet2","leak")
+    );
+    a.push(
+      C("音声","『しゃべったら君のキャリアは終わる』音声が流出","匿名音声アカウント",
+        "NOA役員・木戸とされる男性の声で『これを外でしゃべったら、君のキャリアは終わるよ』という15秒の音声。",
+        "前後は切れている。話者・録音日時は未確認。","audio","leak"),
+      F("identify") ?
+      C("人物","久住元マネージャー、退職前に経費不正で処分されていた","NOA関係者を名乗る複数投稿",
+        "@NorthWindと疑われている久住について、架空の会食費を申請して処分されたという話が広がる。領収書画像も投稿された。",
+        "領収書は久住名義ではない。NOAはコメントしていない。","kuzumiBad","credibility")
+      :
+      C("人物","元マネージャー久住『匿名告発者は私ではない』","久住本人",
+        "噂を受け『NorthWindは私ではありません。NOAと揉めて辞めたのは事実です』と投稿。",
+        "本人による否定。匿名アカウントとの関係を外から証明する手段はない。","kuzumiDeny","credibility"),
+      C("広告主","大手スポンサーHALCYON『現在、取引内容を確認中』","HALCYON広報",
+        "ミオが出演した大型キャンペーンについて『事務所との精算を含め確認中』とだけ発表。",
+        "なぜ確認しているか、支払いを止めたかは説明していない。","sponsor","company"),
+      F("saki") ?
+      C("集合知","サキの過去の請求書から『留保』記載を発見","ファン有志",
+        "サキが以前公開していた確定申告動画の一瞬から、NOA請求明細に『reserve』欄があることを発見。サキ本人は『当時は意味を知らなかった』と反応。",
+        "映像は本人の過去動画。ミオと同額・同理由ではない。","sakiDoc","dig")
+      :
+      C("証言","別の元配信者『払われた。でも説明は毎回バラバラだった』","元NOA所属・タク",
+        "『未払いではなかった。ただ、遅れる理由を聞くたびに担当者の説明が違った』と投稿。",
+        "個人的な経験談。ミオの件を直接知っているわけではない。","taku","person"),
+      C("本人","ミオ『“契約違反”の中身を私も知りたい』","ミオ本人",
+        "『私は何度も説明を求めました。NOAが言う“複数回の契約違反”が何を指すのか、私も知りたい』と投稿。",
+        "会社側は個別内容を公開していない。","mio2","person")
+    );
+    return a;
+  }
+
+  if(d===3){
+    // Different loops illuminate different attacks on credibility.
+    if(g.loop===1){
+      a.push(C("音声検証","音声解析アカウント『0:14付近に編集痕』","音声フォレンジック @WaveProof",
+        "波形とノイズの連続性から『少なくとも一度編集されている可能性が高い』と投稿。音声は“捏造”だという解釈が一気に広がる。",
+        "解析手法の詳細はスレッドで説明されているが、元ファイルは公開されていない。","waveproof","expert"));
+    } else {
+      a.push(C("信用","@WaveProof、過去の音声鑑定で経歴を偽っていた疑惑","検証コミュニティ",
+        "代表者がプロフィールに書いていた海外研究所の在籍歴を研究所側が否定。過去鑑定でも誤判定が指摘される。",
+        "経歴問題が今回の解析結果を自動的に誤りにするわけではない。","wavebad","credibility"));
+    }
+
+    if(g.loop>=2 && (F("audio")||F("waveproof")||F("wavebad"))){
+      a.push(C("再流出","4分12秒の『元音声』が公開される","過去に捏造騒動を起こした暴露アカウント",
+        "15秒版を含む長い録音。直前には木戸らしき人物が『スポンサー名まで出したら契約上まずい』と話し、その後『君のキャリアは終わるよ』と続く。",
+        "長尺だが、公開者は別件で偽造DMを投稿した前歴がある。元データの来歴は不明。","fullAudio","leak"));
+    } else {
+      a.push(C("反論","NOA『流出音声は文脈を欠き、当社の認識と異なる』","NOA公式",
+        "音声そのものが偽物とは断定せず、『切り取られた音声で恫喝があったとする解釈は事実と異なる』と声明。",
+        "前後の会話は公開していない。","audioDenial","company"));
+    }
+
+    if(g.loop>=2 && (F("sponsor")||F("saeki")||F("contract"))){
+      a.push(C("資金","HALCYON、春からNOAへの一部支払いを保留していた","広告業界紙",
+        "キャンペーンの視聴指標に確認事項があり、スポンサーがNOAへの支払いの一部を止めていたと関係者2名が証言。",
+        "HALCYONは『個別契約は回答しない』。視聴指標の何が問題だったかは不明。","sponsorHold","report"));
+    } else {
+      a.push(C("資金","NOA『広告主からの入金遅延が精算に影響した』","NOA説明会の参加者メモ",
+        "非公開説明会で、配信者への一部精算が遅れた理由を『広告主側の入金確認』と説明したとされる。",
+        "録音はない。複数参加者のメモは大筋で一致。","paymentDelay","report"));
+    }
+
+    if(F("saeki")){
+      a.push(C("人物","会計士・佐伯、HALCYONの業務委託先だった","企業データベースを掘るユーザー",
+        "佐伯の事務所が昨年HALCYONの内部統制セミナーを請け負っていた記録が発見される。『スポンサー側の人間だった』と炎上。",
+        "単発の業務委託。NOAや今回の精算案件への関与は確認されていない。","saekiTie","credibility"));
+    } else {
+      a.push(C("契約","拡散中のNOA契約書、施行日がミオ加入後","契約書を比較したユーザー",
+        "PDFの改訂日がミオのNOA加入より8か月後だと指摘。『ミオには適用されないのでは』との声。",
+        "契約更新時に新版へ切り替わった可能性もあり、本人版は公開されていない。","contractDate","document"));
+    }
+
+    if(F("kuzumiBad")||F("kuzumiDeny")||F("northwind")){
+      a.push(C("告発者","@NorthWind『私の素性より、画像の中身を見て』","@NorthWind",
+        "『私がどんな人間でも、社内チャットの内容が消えるわけじゃない』と投稿。続けて別のチャット画像を公開。",
+        "新画像には『配信者にはスポンサー都合と説明』という文がある。真正性は未確認。","northwind2","leak"));
+    } else {
+      a.push(C("SNS","『匿名告発者が一番怪しい』がトレンド入り","トレンド集計",
+        "NOAよりも@NorthWindの正体探しが盛り上がり、過去投稿や交友関係の特定が進む。",
+        "告発内容の真偽とは別に、人物探しが独立して加速している。","hunt","crowd"));
+    }
+
+    a.push(
+      C("移籍疑惑","LARK関係者『ミオとは以前から話していた』","週刊誌オンライン",
+        "ライバル事務所LARKの関係者が『契約解除の前から相談を受けていた』と証言。NOA側の“契約違反”と結びつける記事が出る。",
+        "『相談』の開始日、内容、契約交渉だったかは書かれていない。","larkTalk","rumor")
+    );
+    return a;
+  }
+
+  // day 4
+  if(g.loop>=2){
+    a.push(C("再検証","長尺音声の主要部分は『その場で聞いた内容と近い』","会議同席者を名乗る元スタッフ",
+      "匿名インタビューで『キャリアは終わる、という言葉は実際に聞いた。ただ、自分は脅しだと受け取らなかった』と証言。",
+      "本人確認は媒体側のみ。録音全体が本物だと保証する証言ではない。","witnessAudio","person"));
+  } else {
+    a.push(C("信用","@WaveProof代表、専門経歴に虚偽疑惑","検証コミュニティ",
+      "昨日の『編集痕』解析を出したアカウント代表について、プロフィールの研究歴に虚偽があると指摘される。",
+      "経歴詐称が解析内容の誤りを直接証明するわけではない。","wavebad","credibility"));
+  }
+
+  if(g.loop>=3 && (F("sponsorHold")||F("saekiTie"))){
+    a.push(C("広告指標","NOA、広告案件の視聴数を外部業者で『補強』していた？","別の内部資料を持つ記者",
+      "HALCYON案件で、広告視聴数を増やす外部プロモーション業者への発注記録を公開。スポンサーが支払いを止めた理由と関連する可能性。",
+      "有料プロモーション自体が不正とは限らない。契約上許可されていたかは未確認。","boost","report"));
+  } else {
+    a.push(C("資金","NOA、配信者への一部支払いを『一時留保した』と初めて認める","NOA記者会見",
+      "『広告主との精算確認が終わるまで契約に基づき一部留保した』と説明。『未払いを隠した事実はない』と主張。",
+      "留保の存在は認めたが、ミオへの説明時期や金額は回答せず。","admitReserve","company"));
+  }
+
+  if(g.loop>=3 && (F("northwind2")||F("kuzumiBad"))){
+    a.push(C("リーク再評価","@NorthWindの社内チャット、一部はNOAが『真正』と認める","NOA会見",
+      "『流出した社内チャットの一部は実在する。ただし前後が省略され、誤解を招いている』とNOAが説明。",
+      "どの画像が真正か、前後全文は公開していない。","chatReal","document"));
+  } else {
+    a.push(C("告発者","久住元マネージャー、経費不正処分は事実だったと認める","久住本人",
+      "『経費の処理で会社と争い、処分されたのは事実。ただし横領したという言い方は違う』と投稿。@NorthWindとの関係は再び否定。",
+      "久住の信用問題とリーク画像の真偽は切り分けられていない。","kuzumiAdmit","credibility"));
+  }
+
+  if(g.loop>=3 && (F("larkTalk")||F("moveRumor")||F("larkLike"))){
+    a.push(C("時系列","ミオとLARKの最初の面談、支払い問題の相談後だった可能性","ミオ側代理人の説明",
+      "『LARKへの相談はNOAに精算説明を求めた後。移籍契約の交渉ではなかった』と説明。NOAは『契約中の接触自体が問題』と反論。",
+      "双方が認める面談日は一致。何を話したかは公開されていない。","larkTimeline","report"));
+  } else {
+    a.push(C("移籍疑惑","NOA『競合への無断接触も契約解除理由の一つ』","NOA記者会見",
+      "初めて契約違反の一部を具体化。ミオ側は『キャリア相談まで禁じる条項ではない』と反論。",
+      "契約条項そのものは公開されていない。","breach","company"));
+  }
+
+  if(g.loop>=4 && (F("chatReal")||F("admitReserve"))){
+    a.push(C("欠けた文脈","流出チャットの省略部分に『緊急で先払い案を検討』","別の元社員",
+      "@NorthWind画像の直後とされるメッセージに、経理責任者が配信者への緊急先払いを提案している。実施されたかは不明。",
+      "画像のUIと参加者名は過去リークと一致するが、NOAはコメントしていない。","omitted","leak"));
+  } else {
+    a.push(C("本人","ミオ『“盗まれた”とは一度も言っていない』","ミオ本人",
+      "『私が言ったのは、働いた分を受け取りたい、説明してほしい、ということ。みんなが使っている“横領”という言葉は私の言葉ではない』と投稿。",
+      "初日の投稿内容とは整合する。一方で、過去に“返して”と書いた削除済み投稿のスクリーンショットも出回っている。","mioClarify","person"));
+  }
+
+  a.push(C("SNS","『結局どっちが嘘つき？』がトレンド1位","トレンド集計",
+    "NOA、ミオ、久住、佐伯、WaveProof、スポンサー。人物ごとの信用ランキング画像が大量に作られ始める。",
+    "同じ人の同じ発言でも、どの切り抜きを見たかで評価が逆転している。","trustGame","crowd"));
+  return a;
+}
+
+function crowdFor(c){
+  let r=[];
+  const id=c.id;
+  const add=(who,text,kind="")=>r.push([who,text,kind]);
+
+  const base={
+    noa:[
+      ["@契約ウォッチ","『複数回の契約違反』だけでは何も分からない。本人側の説明待ち。","good"],
+      ["@秩序派","会社がここまで言うなら何かあるだろ。","weird"]
+    ],
+    mio:[
+      ["@怒れる民","未払いってこと？ NOA終わったな。","hot"],
+      ["@言葉を見る人","本人は『未払い』とは書いてない。そこは分けよう。","good"]
+    ],
+    northwind:[
+      ["@掘る人","画像のUI、NOA社内ツールっぽい。過去求人の画面と比較する。","good"],
+      ["@炎上速報","【内部告発】NOA、配信者の金を止めていた？","hot"]
+    ],
+    rui:[
+      ["@怒れる民","このタイミングで会社擁護？","hot"],
+      ["@慎重派","『自分は払われた』は他人の未払いを否定してない。","good"]
+    ],
+    sheet:[
+      ["@炎上速報","420,000円抜かれてるじゃん。","hot"],
+      ["@経理クラスタ","“留保”が何を意味するか元帳なしでは分からん。","good"]
+    ],
+    saeki:[
+      ["@怒れる民","はい御用会計士。","hot"],
+      ["@掘る人","この人の取引先も見よう。結論より利害関係を確認したい。","good"]
+    ],
+    audio:[
+      ["@炎上速報","『キャリア終わる』は完全に脅しでは？","hot"],
+      ["@音声民","15秒しかない。前後ほしい。","good"]
+    ],
+    waveproof:[
+      ["@秩序派","編集音声だったのか。ミオ側やばいな。","weird"],
+      ["@音声民","編集＝捏造ではない。無音カットでも波形は切れる。","good"]
+    ],
+    wavebad:[
+      ["@怒れる民","ほら解析屋が嘘つきだった。じゃあ音声は本物じゃん。","hot"],
+      ["@慎重派","解析者が怪しいことと、解析が間違いなことも別。","good"]
+    ],
+    fullAudio:[
+      ["@炎上速報","前後出た。やっぱり言ってる。","hot"],
+      ["@慎重派","公開者が過去に偽造してる。ファイル自体の来歴が知りたい。","good"]
+    ],
+    saekiTie:[
+      ["@怒れる民","スポンサーから金もらってる人が『盗難じゃない』って言ってたの？","hot"],
+      ["@掘る人","単発セミナーの委託と今回の案件関与は別。契約を探す。","good"]
+    ],
+    sponsorHold:[
+      ["@経理クラスタ","これならNOA側のキャッシュが止まった説明はつく。","good"],
+      ["@怒れる民","じゃあ配信者に押し付けたってことだろ。","hot"]
+    ],
+    admitReserve:[
+      ["@怒れる民","結局、止めてたの認めたじゃん。","hot"],
+      ["@契約ウォッチ","“留保できる”と“説明しなくていい”は別問題。","good"]
+    ],
+    chatReal:[
+      ["@炎上速報","会社が本物って認めたぞ。告発者勝ち。","hot"],
+      ["@慎重派","『一部は真正』で、どの部分か出してない。まだ止めよう。","good"]
+    ],
+    larkTalk:[
+      ["@秩序派","移籍しようとして契約切られただけでは？","weird"],
+      ["@言葉を見る人","『相談』がいつ何を意味するかで全然違う。","good"]
+    ],
+    breach:[
+      ["@秩序派","やっと契約違反の中身出た。NOA正しかったじゃん。","weird"],
+      ["@契約ウォッチ","接触禁止条項の範囲が見えないのでまだ何も確定しない。","good"]
+    ],
+    mioClarify:[
+      ["@言葉を見る人","最初から“盗まれた”とは言ってない。世間が補った。","good"],
+      ["@怒れる民","今さら言葉遊び。あの投稿ならそう読まれるだろ。","hot"]
+    ],
+    trustGame:[
+      ["@相関おじさん","人物を白黒にしても、個々の情報の真偽は決まらない。","good"],
+      ["@炎上速報","最新版：信用できる人ランキング作りました。","hot"]
+    ]
+  };
+  (base[id]||[
+    ["@フォロワーA","これ、昨日の話とつながってない？","weird"],
+    ["@フォロワーB","いや、つないでるの俺らでは。","good"]
+  ]).forEach(x=>add(...x));
+
+  // Audience learns from what the player repeatedly feeds it.
+  if(g.audience.mob>=2) add("@特定班","関係者の勤務先と家族アカウントまで出てきた。まとめる。","hot");
+  if(g.audience.diggers>=2) add("@資料庫","元PDF・登記・過去配信を時系列で保存した。断定はしない。","good");
+  if(g.audience.skeptic>=2) add("@疑いすぎる人","公式もリークも専門家も全部利害関係者だろ。何も信じない。","weird");
+  if(g.history.length>=3){
+    const old=g.history[Math.max(0,g.history.length-3)];
+    add("@古参フォロワー","待って。"+(old?("3日前に悪魔が拾った『"+old.title+"』と"):"前の投稿と")+"話変わってない？","weird");
+  }
+  return r.slice(0,5);
+}
+
+function applyAudience(c){
+  if(c.tags.includes("person")||c.tags.includes("crowd")||c.tags.includes("rumor")) g.audience.mob++;
+  if(c.tags.includes("document")||c.tags.includes("dig")||c.tags.includes("report")) g.audience.diggers++;
+  if(c.tags.includes("expert")||c.tags.includes("credibility")||c.tags.includes("context")) g.audience.skeptic++;
+}
+
+function applyPost(c){
+  g.flags[c.id]=true;
+  applyAudience(c);
+  const rec={loop:g.loop,day:g.day,id:c.id,title:c.title,body:c.body,tags:c.tags};
+  g.history.push(rec); g.allHistory.push(rec);
+  g.reactions=crowdFor(c);
+
+  // Posting certain materials changes who is willing to surface next.
+  if(c.id==="northwind"||c.id==="sheet"||c.id==="northwind2") g.flags.leakPressure=true;
+  if(c.id==="noa"||c.id==="denial"||c.id==="audioDenial") g.flags.companyPressure=true;
+  if(c.id==="mio"||c.id==="mio2"||c.id==="mioClarify") g.flags.mioFocus=true;
+  if(c.id==="saeki"||c.id==="waveproof"||c.id==="wavebad") g.flags.verifyFocus=true;
+  if(c.id==="sponsor"||c.id==="sponsorHold") g.flags.moneyFocus=true;
+  if(c.id==="larkLike"||c.id==="larkTalk"||c.id==="breach") g.flags.moveFocus=true;
+}
+
+function renderTimeline(){
+  let t="";
+  if(g.history.length){
+    const last=g.history[g.history.length-1];
+    t+='<div class="label">あなたの直近の投稿</div>';
+    t+='<div class="post"><div class="who">@fact_only_devil ✓</div><div class="text">'+last.title+'<br><span style="color:#aeb3bc">'+last.body+'</span></div></div>';
+  }
+  if(g.reactions.length){
+    t+='<div class="label">3000万人の解釈</div>';
+    g.reactions.forEach(x=>{
+      t+='<div class="reaction '+(x[2]||"")+'"><div class="who">'+x[0]+'</div><div class="text">'+x[1]+'</div></div>';
+    });
+  }
+  $("timeline").innerHTML=t;
+}
+
+function render(){
+  $("day").textContent="LOOP "+g.loop+" ／ DAY "+(g.day+1)+"/5";
+  $("mission").innerHTML="<b>地獄本部：</b>「今週の指令：5日間で人間社会を揉めさせろ。」<br><span class='small'>"+dayMood[g.day]+"</span>";
+  if(g.loop>1 && g.day===0){
+    $("memory").innerHTML='<div class="memory"><b>巻き戻し '+g.loop+' 回目：</b>あなたは前回の5日間を覚えている。人間たちは月曜の朝に戻っている。この周では、前回と同じ情報が出るとは限らない。</div>';
+  } else $("memory").innerHTML="";
+  renderTimeline();
+
+  const cards=dayCards(g.day);
+  $("cards").innerHTML="";
+  cards.forEach((c,i)=>{
+    const e=document.createElement("article");
+    e.className="card";
+    e.innerHTML='<div class="type">'+c.type+'</div><h2>'+c.title+'</h2><div class="source">出どころ：'+c.source+'</div><div class="body">'+c.body+'</div><div class="prov">'+c.prov+'</div><button class="choose '+(g.sel===i?"on":"")+'">この情報を拾う</button>';
+    e.querySelector("button").onclick=()=>{g.sel=(g.sel===i?null:i);render()};
+    $("cards").appendChild(e);
+  });
+  $("sel").textContent=g.sel===null?"未選択":cards[g.sel].title;
+  $("pub").disabled=g.sel===null;
+}
+
+$("pub").onclick=()=>{
+  const c=dayCards(g.day)[g.sel];
+  applyPost(c);
+  $("box").innerHTML='<h1>3000万人に投稿した。</h1><div class="quote"><b>@fact_only_devil ✓</b><br>'+c.title+'<br><span style="color:#aeb3bc">'+c.body+'</span></div><p>ここから先は、人間たちが読む。</p><button id="next" class="go">'+(g.day<4?"翌朝を見る":"地獄本部へ報告する")+'</button>';
+  $("result").classList.remove("hidden");
+  $("next").onclick=()=>{
+    if(g.day<4){
+      g.day++;g.sel=null;$("result").classList.add("hidden");render();scrollTo(0,0);
+    } else endLoop();
+  };
+};
+
+function endLoop(){
+  const lines=[];
+  if(F("audio")) lines.push("15秒の音声は『脅迫の証拠』になった。");
+  if(F("waveproof")) lines.push("その音声は一度『編集物』として退けられた。");
+  if(F("wavebad")) lines.push("ところが、音声を退けた側の信用も崩れた。");
+  if(F("fullAudio")) lines.push("長い音声が出たが、今度は公開者が信用できなかった。");
+  if(F("sheet")||F("sheet2")) lines.push("支払表は“未払いの証拠”として読まれた。");
+  if(F("saeki")) lines.push("会計士は『それだけでは証明しない』と言った。");
+  if(F("saekiTie")) lines.push("その会計士にもスポンサーとの利害が見つかった。");
+  if(F("admitReserve")) lines.push("そして会社自身が、一部留保は認めた。");
+  if(F("chatReal")) lines.push("信用を失った告発ルートの資料まで、一部は本物だと会社が認めた。");
+  if(F("breach")||F("larkTalk")||F("larkTimeline")) lines.push("ミオ側にも“別事務所との接触”という別の筋が浮いた。");
+  if(F("mioClarify")) lines.push("ミオ本人は『横領とは言っていない』と線を引いた。");
+  if(!lines.length) lines.push("今週も、人間どもは断片からもっともらしい筋書きを作った。");
+
+  let loopHint="";
+  if(g.loop===1) loopHint="まだ出ていない証言や資料がある。別の投稿をすれば、別の人間が動くかもしれない。";
+  else if(g.loop===2) loopHint="前回は出なかった情報が出た。次は、別の情報源を先に動かしてみてもいい。";
+  else if(g.loop===3) loopHint="地獄本部は結果だけを求めている。誰を信じるかは、あなたの仕事ではない。";
+  else loopHint="月曜は何度でも戻る。あなたが変えられるのは、3000万人の前に何を置くかだけだ。";
+
+  $("box").innerHTML='<div class="devil">😈</div><h1>地獄本部・週報</h1><div class="quote">'+lines.join("<br><br>")+'</div><p><b>上司：</b>「混乱は増えたか？」</p><p><b>あなた：</b>「……増えた。たぶん。」</p><p>'+loopHint+'</p><button id="rewind" class="go">月曜まで巻き戻す</button>';
+  $("rewind").onclick=()=>{
+    g.seenLoops.push({loop:g.loop,history:g.history.slice()});
+    g.loop=Math.min(g.loop+1,4);
+    g.day=0;g.sel=null;g.flags={};g.reactions=[];g.history=[];
+    // The crowd is a new timeline, but the devil remembers; audience culture also resets.
+    g.audience={mob:0,diggers:0,skeptic:0};
+    $("result").classList.add("hidden");render();scrollTo(0,0);
+  };
+}
+
+$("start").onclick=()=>{$("intro").classList.add("hidden");render()};
+render();
+</script>
+</body>
+</html>
